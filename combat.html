@@ -448,5 +448,5 @@ if(state==='victory'||state==='defeat'){p(104,66,112,30,'#1a2028');ctx.fillStyle
 }
 $('modeHelp').textContent='Raw power: total normalized effort determines damage. Switch modes to compare how each feels.';
 $('attackMode').onchange=()=>{$('modeHelp').textContent=({power:'Raw power: accumulate energy over 20 seconds.',precision:'Precision: your watts are the gold line. Follow the moving green target band. Both too much and too little power reduce charging.',climb:'Escalating resistance: maintain power as the trainer gradually increases gradient (if enabled).',release:'Risk and release: build charge, then stop before it starts decaying.'})[$('attackMode').value]};
-prepareEncounter();requestAnimationFrame(update);
+rideStats={elapsed:0,workJ:0,virtualKm:0,powerSeconds:0,peakWatts:0,damageDealt:0,damageTaken:0,shieldsUsed:0,fightsWon:0};prepareEncounter();requestAnimationFrame(update);
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./pedal-sw.js").catch(console.warn);</script></body></html>
