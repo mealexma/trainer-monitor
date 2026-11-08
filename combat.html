@@ -49,7 +49,7 @@ main>.secondary{position:absolute!important;left:auto!important;right:var(--side
 @media(max-height:650px){main>.panel:first-of-type{height:130px!important;padding:6px!important}main>.settings{top:130px!important;height:100px!important;padding:6px!important}main>.panel:nth-of-type(2){top:230px!important;bottom:35px!important;padding:6px!important}.extrasToggle{height:35px!important}main>.panel:first-of-type button{padding:4px!important;font-size:10px!important}.connection{font-size:10px!important}.readout{font-size:18px!important}#phaseSteps{margin:4px 0!important}}
 @media(max-width:560px){:root{--side:clamp(155px,43vw,210px)}main>.panel:first-of-type,main>.panel:nth-of-type(2),main>.settings,.extrasToggle{width:var(--side)!important;max-width:none!important;right:0!important}canvas#scene{object-position:center!important}button,select{font-size:10px!important;padding:5px 3px!important;border-width:2px!important}main>.panel:first-of-type{height:142px!important}main>.settings{top:142px!important;height:115px!important}main>.panel:nth-of-type(2){top:257px!important}.connection{font-size:9px!important}}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.2</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.3</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <canvas id="scene" width="320" height="180" aria-label="Wizard faces skeleton in abandoned village"></canvas>
@@ -109,11 +109,14 @@ $('focusValue').textContent=Math.round(focus)+' / 100';$('focusBar').style.width
 if(state!=='attack')$('targetLabel').textContent='';
 draw(now);requestAnimationFrame(update)}
 const canvas=$('scene'),ctx=canvas.getContext('2d');
-function draw(now){
+const villageLayer=document.createElement('canvas');villageLayer.width=320;villageLayer.height=180;const villageCtx=villageLayer.getContext('2d');let villageReady=false;
+function paintVillage(){
+const W=320,H=180,ctx=villageCtx;
+
 const W=320,H=180,p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))};
 const poly=(pts,col)=>{ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);ctx.closePath();ctx.fill()};
 const noise=(x,y)=>{let n=(x*374761393+y*668265263)|0;n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295};
-ctx.imageSmoothingEnabled=false;
+ ctx.imageSmoothingEnabled=false;
 p(0,0,W,102,'#53505c');for(let y=0;y<100;y+=3)for(let x=0;x<W;x+=5){let n=noise(x,y);if(n>.42)p(x,y,5,3,n>.75?'#605968':'#4b4b59')}
 poly([0,86,23,63,40,78,58,51,80,76,104,54,133,88,160,62,198,83,220,55,254,80,282,56,320,75,320,110,0,110],'#353846');
 p(0,99,W,81,'#393d39');
@@ -126,6 +129,16 @@ poly([126,93,193,93,320,180,0,180],'#706b62');for(let i=0;i<18;i++){let y=97+i*5
 for(let i=0;i<90;i++){let x=noise(i,20)*W,y=99+noise(i,33)*80;if(x>150-(y-95)*1.5&&x<170+(y-95)*1.5)continue;p(x,y,2+noise(i,3)*4,2,noise(i,4)>.5?'#6b6a4f':'#434d3d')}
 p(222,87,35,6,'#5a514a');p(225,82,29,5,'#82796a');p(228,68,4,16,'#554840');p(250,68,4,16,'#554840');poly([225,68,239,58,254,68],'#483d3b');p(234,85,12,7,'#292d30');
 for(let i=0;i<9;i++){const x=35+i*2,y=75-i*5;p(x,y,2,7,'#3d302f')}p(42,40,3,48,'#423330');for(let i=0;i<5;i++){p(44+i*5,45-i*7,9,2,'#443637')}
+
+// Moonlight, windows and foreground texture are baked into this static layer.
+ctx.fillStyle='#e6d8bd';ctx.beginPath();ctx.arc(270,19,10,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#c4c0bd';ctx.beginPath();ctx.arc(273,17,9,0,Math.PI*2);ctx.fill();
+for(let i=0;i<160;i++){const x=noise(i,92)*320,y=noise(i,97)*180;if(y<99||noise(i,98)<.45)continue;p(x,y,1,1,noise(i,99)>.6?'#988a7a':'#4d514f')}
+villageReady=true;
+}
+function draw(now){
+const W=320,H=180,p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))};
+if(!villageReady)paintVillage();ctx.imageSmoothingEnabled=false;ctx.drawImage(villageLayer,0,0);
 const bob=Math.sin(now/270)*1.2;
 ctx.save();ctx.translate(163,111+bob);ctx.scale(1.38,1.38);
 const bone='#ded0af',lit='#f1e4c5',shadow='#8d806c',dark='#26272a';
