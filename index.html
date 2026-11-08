@@ -22,7 +22,7 @@ button:disabled{opacity:.55}button.secondary{background:#334155}
 .panel{margin-top:12px}canvas{display:block;width:100%;height:210px}
 .note{color:#94a3b8;font-size:.78rem;line-height:1.5}
 </style></head><body><main>
-<h1>🚴 Trainer Monitor <span class="sub">v0.8</span></h1>
+<h1>🚴 Trainer Monitor <span class="sub">v0.9</span></h1>
 <p id="status" role="status">Disconnected</p>
 <div class="controls"><button id="connect">Connect Magnus</button><button class="secondary" id="reset">Reset session</button></div>
 <div class="grid">
@@ -35,7 +35,7 @@ button:disabled{opacity:.55}button.secondary{background:#334155}
 <div class="stat"><div class="label">AVG POWER</div><div class="num" id="average">—</div><span class="unit">W</span></div>
 <div class="stat"><div class="label">MAX POWER</div><div class="num" id="maximum">—</div><span class="unit">W</span></div>
 </div>
-<section class="panel"><h2>Live power <span class="sub">· last 2 minutes</span></h2><canvas id="graph" aria-label="Live power history chart"></canvas><p class="note">The session starts with the first power reading. Reset clears the timer and graph. Resistance adjustment is not yet implemented.</p></section><section class="panel"><h2>CycleOps control diagnostics</h2><p class="note" id="controlStatus">Not connected</p><pre id="controlLog" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem;max-height:180px;overflow:auto">No indications yet.</pre><p class="note">Experimental replay to Zwift's actual control characteristic (0x0027). Its effect is unknown; this is not a resistance setting.</p><button id="testCommand" disabled>Send captured test command</button><div style="margin-top:14px"><label for="experimentalValue">Experimental 46 packet (captured values only)</label><select id="experimentalValue" style="display:block;margin:10px 0;background:#0f172a;color:white;padding:10px;border-radius:8px"><option value="46807f">46 80 7f</option><option value="460280">46 02 80</option><option value="463b82">46 3b 82</option></select><button id="send46" disabled>Send one experimental 46 command</button><p class="note">Unknown effect and range. Trainer must be unoccupied; stop if anything unexpected happens. Do not pedal during this test.</p></div><div style="margin-top:18px;border-top:1px solid #475569;padding-top:15px"><h2>Timed repeat test · 20 seconds</h2><p class="note">Repeats the selected captured 46 packet to Zwift's control endpoint every 2 seconds, maximum 10 sends. Unknown physical effect. Trainer unoccupied. Stop immediately if anything unusual happens. Stopping ends transmissions; it does not reset any setting on the trainer.</p><div class="controls"><button id="startRepeat" disabled>Start 20-second test</button><button id="stopRepeat" class="secondary" disabled>STOP repeating</button></div><p class="note" id="repeatStatus">Not running</p></div></section>
+<section class="panel"><h2>Live power <span class="sub">· last 2 minutes</span></h2><canvas id="graph" aria-label="Live power history chart"></canvas><p class="note">The session starts with the first power reading. Reset clears the timer and graph. Experimental resistance control is below.</p></section><section class="panel"><h2>Resistance control · experimental</h2><p class="note">Based on the documented Wahoo BLE extension detected on Magnus. Not yet validated on this trainer. Start with low settings; stop pedaling if resistance rises unexpectedly.</p><div class="controls"><button id="unlock" disabled>Unlock control</button><button id="release" class="secondary" disabled>STOP · set 0% grade</button></div><p class="note" id="modeStatus">Connect to begin. Commands are serialized; responses are shown in diagnostics.</p><div style="margin-top:14px"><label for="grade">Simulated gradient: <strong id="gradeValue">0%</strong></label><input type="range" id="grade" min="0" max="5" step="0.5" value="0" style="display:block;width:100%;margin:12px 0"><button id="applyGrade" disabled>Apply gradient</button></div><div style="margin-top:18px"><label for="ergWatts">ERG target (watts)</label><input type="number" id="ergWatts" min="60" max="200" step="10" value="100" style="display:block;margin:10px 0;padding:10px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:8px;width:130px"><button id="applyErg" disabled>Set ERG target</button></div><p class="note">STOP sends a 0% gradient command; it cannot guarantee immediate mechanical release. If necessary, stop pedaling and disconnect/power off the trainer. ERG may feel harder at low cadence.</p></section><section class="panel"><h2>CycleOps control diagnostics</h2><p class="note" id="controlStatus">Not connected</p><pre id="controlLog" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem;max-height:180px;overflow:auto">No indications yet.</pre><p class="note">Experimental replay to Zwift's actual control characteristic (0x0027). Its effect is unknown; this is not a resistance setting.</p><button id="testCommand" disabled>Send captured test command</button><div style="margin-top:14px"><label for="experimentalValue">Experimental 46 packet (captured values only)</label><select id="experimentalValue" style="display:block;margin:10px 0;background:#0f172a;color:white;padding:10px;border-radius:8px"><option value="46807f">46 80 7f</option><option value="460280">46 02 80</option><option value="463b82">46 3b 82</option></select><button id="send46" disabled>Send one experimental 46 command</button><p class="note">Unknown effect and range. Trainer must be unoccupied; stop if anything unexpected happens. Do not pedal during this test.</p></div><div style="margin-top:18px;border-top:1px solid #475569;padding-top:15px"><h2>Timed repeat test · 20 seconds</h2><p class="note">Repeats the selected captured 46 packet to Zwift's control endpoint every 2 seconds, maximum 10 sends. Unknown physical effect. Trainer unoccupied. Stop immediately if anything unusual happens. Stopping ends transmissions; it does not reset any setting on the trainer.</p><div class="controls"><button id="startRepeat" disabled>Start 20-second test</button><button id="stopRepeat" class="secondary" disabled>STOP repeating</button></div><p class="note" id="repeatStatus">Not running</p></div></section>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -67,6 +67,67 @@ $('send46').onclick=async()=>{
  catch(error){controlLog('46 write error: '+error.message)}
  finally{commandBusy=false;repeatUi()}
 };
+
+let controlQueue=Promise.resolve(),unlocked=false;
+const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join(' ');
+function queueControl(bytes,label){
+ const task=async()=>{
+  if(!controlCharacteristic||!device?.gatt?.connected)throw Error('Trainer disconnected');
+  controlLog('TX '+label+': '+hex(bytes));
+  await controlCharacteristic.writeValueWithResponse(bytes);
+  controlLog(label+' ATT write acknowledged; trainer acceptance unverified');
+ };
+ const next=controlQueue.then(task,task);
+ controlQueue=next.catch(()=>{});
+ return next;
+}
+function controlButtons(){
+ const ready=!!controlCharacteristic&&!!device?.gatt?.connected;
+ $('unlock').disabled=!ready;
+ $('release').disabled=!ready;
+ $('applyGrade').disabled=!ready||!unlocked;
+ $('applyErg').disabled=!ready||!unlocked;
+}
+function commandError(e){controlLog('Control error: '+e.message);$('modeStatus').textContent='Error: '+e.message}
+$('grade').oninput=()=>$('gradeValue').textContent=$('grade').value+'%';
+$('unlock').onclick=async()=>{
+ try{
+  await queueControl(Uint8Array.of(0x20,0xee,0xfc),'Unlock');
+  unlocked=true;controlButtons();
+  $('modeStatus').textContent='Unlock sent; inspect response for acceptance';
+ }catch(e){commandError(e)}
+};
+$('applyGrade').onclick=async()=>{
+ if(!unlocked)return;
+ const grade=Number($('grade').value);
+ if(!Number.isFinite(grade)||grade<0||grade>5)return;
+ const v=Math.round((1+grade/100)*32768);
+ const setup=Uint8Array.of(0x43,0x28,0x23,0x04,0x00,0x70,0x01);
+ try{
+  await queueControl(setup,'SIM setup');
+  await queueControl(Uint8Array.of(0x46,v&255,v>>8),'Grade '+grade+'%');
+  $('modeStatus').textContent='Requested '+grade+'% gradient; effect not yet confirmed';
+ }catch(e){commandError(e)}
+};
+$('applyErg').onclick=async()=>{
+ if(!unlocked)return;
+ const w=Number($('ergWatts').value);
+ if(!Number.isInteger(w)||w<60||w>200){$('modeStatus').textContent='Choose 60–200 W';return}
+ if(!confirm('Set trainer to '+w+' W ERG mode? Resistance can increase as cadence drops.'))return;
+ try{
+  await queueControl(Uint8Array.of(0x42,w&255,w>>8),'ERG '+w+' W');
+  $('modeStatus').textContent='Requested '+w+' W ERG; effect not yet confirmed';
+ }catch(e){commandError(e)}
+};
+$('release').onclick=async()=>{
+ if(repeatActive)stopRepeat('Emergency stop');
+ $('grade').value=0;$('gradeValue').textContent='0%';
+ try{
+  await queueControl(Uint8Array.of(0x46,0x00,0x80),'STOP: 0% grade');
+  $('modeStatus').textContent='0% grade requested. Stop pedaling if resistance persists.';
+ }catch(e){commandError(e)}
+};
+
 function repeatUi(){
  const ready=!!controlCharacteristic&&!!device?.gatt?.connected;
  $('startRepeat').disabled=!ready||repeatActive||commandBusy;
@@ -167,7 +228,7 @@ $('connect').onclick=async()=>{
  if(!navigator.bluetooth)throw Error('Web Bluetooth unavailable: open in Chrome on Android');
  $('status').textContent='Choose Magnus…';
  device=await navigator.bluetooth.requestDevice({filters:[{services:[0x1818]}],optionalServices:[0x180a,CONTROL_SERVICE]});
- device.addEventListener('gattserverdisconnected',()=>{if(repeatActive)stopRepeat('Bluetooth disconnected');controlCharacteristic=null;$('testCommand').disabled=true;$('send46').disabled=true;$('controlStatus').textContent='Disconnected';$('status').textContent='Disconnected';$('connect').disabled=false;$('connect').textContent='Reconnect Magnus'});
+ device.addEventListener('gattserverdisconnected',()=>{if(repeatActive)stopRepeat('Bluetooth disconnected');controlCharacteristic=null;unlocked=false;controlButtons();$('testCommand').disabled=true;$('send46').disabled=true;$('controlStatus').textContent='Disconnected';$('status').textContent='Disconnected';$('connect').disabled=false;$('connect').textContent='Reconnect Magnus'});
  $('status').textContent='Connecting…';
  const server=await device.gatt.connect();
  const service=await server.getPrimaryService(0x1818);
@@ -181,11 +242,11 @@ $('connect').onclick=async()=>{
      controlLog([...bytes].map(b=>b.toString(16).padStart(2,'0')).join(' '));
    });
    await control.startNotifications();
-   controlCharacteristic=control;repeatUi();
+   controlCharacteristic=control;repeatUi();controlButtons();
    $('controlStatus').textContent='Subscribed to Zwift control endpoint (Cycling Power service)';
    controlLog('Subscribed to Zwift endpoint '+ZWIFT_POINT+' (waiting for indications)');
  }catch(error){
-   controlCharacteristic=null;repeatUi();
+   controlCharacteristic=null;unlocked=false;repeatUi();controlButtons();
    $('controlStatus').textContent='Control diagnostics unavailable: '+error.message;
    controlLog('Error: '+error.message);
  }
