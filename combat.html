@@ -113,7 +113,7 @@ body.controlsHidden canvas#scene{width:100%!important;object-fit:cover!important
 @media(max-width:750px){#enemyHud{width:160px;padding:7px;top:6px}#enemyHud .enemyHudTop{font-size:6px}#enemyHud .enemyHudTrack{height:12px;margin-top:6px}#playerHud{height:73px!important}#controlsToggle{top:94px!important;font-size:8px!important}body.controlsHidden #controlsToggle{top:94px!important}}
 #journeyMap{display:none;position:absolute;z-index:4;left:0;top:0;width:calc(100% - var(--side));height:calc(100% - clamp(120px,26vh,210px));background:#17251e;border:4px ridge #937345}#journeyMap.visible{display:block}#mapCanvas{width:100%;height:100%;object-fit:fill;image-rendering:pixelated}#mapCaption{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);background:#151c1aee;border:2px solid #bda780;color:#eee2bd;font:bold clamp(11px,1.5vw,18px) monospace;padding:10px;white-space:nowrap;pointer-events:none}#journeyBadge{position:absolute;z-index:8;left:50%;bottom:calc(clamp(120px,26vh,210px) + 10px);transform:translateX(-50%);font:bold 12px monospace;color:#f5ddb2;text-shadow:2px 2px #000;pointer-events:none;white-space:nowrap}body.controlsHidden #journeyMap{width:100%}@media(max-width:750px){#journeyBadge{font-size:9px}#mapCaption{font-size:10px}}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.2</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.3</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <button type="button" id="controlsToggle" aria-expanded="true" aria-label="Hide right controls">HIDE CONTROLS ◀</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
@@ -246,7 +246,11 @@ const layeredAssets={
   idle:'skeleton_idle.png',
   hurt:'skeleton_hurt.png',
   attack:'skeleton_attack.png',
-  staff:'player_staff_idle.png'
+  staff:'player_staff_idle.png',
+  swampBg:'bg_swamp_clean.png',
+  slimeIdle:'slime_idle.png',
+  slimeHurt:'slime_hurt.png',
+  slimeAttack:'slime_attack.png'
 };
 const layeredImages={};
 for(const [key,url] of Object.entries(layeredAssets)){
@@ -257,26 +261,30 @@ for(const [key,url] of Object.entries(layeredAssets)){
 }
 function drawLayeredScene(now){
   if(!layeredImages.bg||!layeredImages.idle)return false;
+  const isSlime=enemy().kind==='slime';
+  const background=isSlime?(layeredImages.swampBg||layeredImages.bg):layeredImages.bg;
+  const baseEnemy=isSlime?(layeredImages.slimeIdle||layeredImages.idle):layeredImages.idle;
+  const pose=now<enemyVisualUntil?enemyVisualState:'idle';
+  const sprite=isSlime
+    ?(pose==='hurt'?layeredImages.slimeHurt:pose==='attack'?layeredImages.slimeAttack:null)
+    :(pose==='hurt'?layeredImages.hurt:pose==='attack'?layeredImages.attack:null);
+  const enemyImage=sprite||baseEnemy;
   ctx.save();
   ctx.imageSmoothingEnabled=false;
   ctx.clearRect(0,0,320,240);
-  ctx.drawImage(layeredImages.bg,0,0,320,240);
-  const elapsed=performance.now();
-  const isActing=now<enemyVisualUntil;
-  const action=isActing?enemyVisualState:'idle';
-  const enemyImage=layeredImages[action]||layeredImages.idle;
+  ctx.drawImage(background,0,0,320,240);
   if(state!=='victory'&&state!=='recovery'&&state!=='complete'){
-    // Same baseline and frame for every pose; prevents position jumps.
-    const sway=action==='idle'?Math.sin(now/440)*1.15:0;
-    const recoil=action==='hurt'?-4:0;
-    const advance=action==='attack'?8:0;
-    const enemyX=124+recoil-advance*.32;
-    const enemyY=79+sway+(action==='hurt'?-2:0);
-    const enemyW=112+advance;
-    const enemyH=114+advance;
+    const sway=pose==='idle'?Math.sin(now/440)*1.15:0;
+    const recoil=pose==='hurt'?-4:0;
+    const advance=pose==='attack'?8:0;
+    // Different proportions for the low, wide marsh blob.
+    const enemyW=isSlime?136+advance:112+advance;
+    const enemyH=isSlime?108+advance:114+advance;
+    const enemyX=isSlime?92+recoil-advance*.32:124+recoil-advance*.32;
+    const enemyY=isSlime?99+sway+(pose==='hurt'?-2:0):79+sway+(pose==='hurt'?-2:0);
     ctx.fillStyle='rgba(0,0,0,.34)';
     ctx.beginPath();
-    ctx.ellipse(181,193,40,7,0,0,Math.PI*2);
+    ctx.ellipse(isSlime?160:181,193,isSlime?51:40,7,0,0,Math.PI*2);
     ctx.fill();
     ctx.drawImage(enemyImage,enemyX,enemyY,enemyW,enemyH);
   }
