@@ -191,7 +191,7 @@ html body main :is(#enemyHud,#playerHud) *{font-family:'Press Start 2P',monospac
 #summaryRestart{width:100%;padding:14px!important;background:#343050!important;color:#fff!important}
 @media(max-width:720px){#summaryStats{grid-template-columns:1fr}#runSummary .summaryRow{padding:8px}#runSummary .summaryInner{max-height:95dvh}}
 </style></head><body class="controlsHidden"><main>
-<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.9</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.11.0</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <button type="button" id="controlsToggle" aria-expanded="false" aria-label="Show right controls">SHOW CONTROLS ▶</button><button type="button" id="debugSkip" title="Debug: skip travel or combat, no rewards">⏭ SKIP PHASE</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
@@ -210,7 +210,7 @@ html body main :is(#enemyHud,#playerHud) *{font-family:'Press Start 2P',monospac
 const $=id=>document.getElementById(id);$('extrasToggle').onclick=()=>document.body.classList.toggle('showExtras');$('controlsToggle').onclick=()=>{const hidden=document.body.classList.toggle('controlsHidden');$('controlsToggle').textContent=hidden?'SHOW CONTROLS ▶':'HIDE CONTROLS ◀';$('controlsToggle').setAttribute('aria-expanded',String(!hidden));$('controlsToggle').setAttribute('aria-label',hidden?'Show right controls':'Hide right controls')};
 let device=null,control=null,connected=false,demo=false,demoWatts=0,liveWatts=0,lastReading=0,controlEnabled=false,queue=Promise.resolve(),lastGrade=-1;
 let kills=0,sessionStart=performance.now(),focus=0,state='ready',phaseStart=performance.now(),charge=0,playerHp=30,enemyHp=20,round=0,attacks=0,lastPedaling=false,stopSince=null,mode='power',powerIntegral=0,spellEffect=0,defensePassed=false;
-const ATTACK_MS=60000,DEFENSE_MS=60000,REST_MS=25000,APPROACH_MS=20000,RECOVERY_MS=20000,VICTORY_MS=2500;let phaseScore=0,phaseSamples=0,lastWattCheck=0,negativeStreak=0;let rideTrail=[],lastTrailAt=0,damageFraction=0,playerDamageFraction=0,shieldRemaining=0,windowDealt=0,windowTaken=0,focusRewardEligible=true,enemyVisualState='idle',enemyVisualUntil=0,effortSum=0,effortSeconds=0,unsafeSeconds=0,encounterIndex=0,journeyProgress=0,monsterMaxHp=20,encounterDuration=60000,hill=[],travelDuration=45000,travelProfile=[],travelGradeCap=1.2,travelProgress=0,travelSpeed=1,rideStats=null;
+const ATTACK_MS=60000,DEFENSE_MS=60000,REST_MS=25000,APPROACH_MS=20000,RECOVERY_MS=20000,VICTORY_MS=2500;let phaseScore=0,phaseSamples=0,lastWattCheck=0,negativeStreak=0;let rideTrail=[],lastTrailAt=0,damageFraction=0,playerDamageFraction=0,shieldRemaining=0,windowDealt=0,windowTaken=0,focusRewardEligible=true,enemyVisualState='idle',enemyVisualUntil=0,playerVisualState='idle',playerVisualUntil=0,effortSum=0,effortSeconds=0,unsafeSeconds=0,encounterIndex=0,journeyProgress=0,monsterMaxHp=20,encounterDuration=60000,hill=[],travelDuration=45000,travelProfile=[],travelGradeCap=1.2,travelProgress=0,travelSpeed=1,rideStats=null;
 const log=m=>{$('journal').textContent=m+'\n'+$('journal').textContent.slice(0,1400)};
 const baseline=()=>Math.min(350,Math.max(50,Number($('baseline').value)||250));
 const power=()=>demo?demoWatts:(Date.now()-lastReading<2400?liveWatts:0);
@@ -221,7 +221,7 @@ function announcePhase(s){const messages={ready:['TRAVEL','Ride toward the next 
 function setState(s){if(s==='ready'){travelProgress=0;travelSpeed=1}shieldRemaining=0;windowDealt=0;windowTaken=0;effortSum=0;effortSeconds=0;unsafeSeconds=0;if(s==='rest'||s==='recovery'||s==='victory'||s==='defeat'||s==='complete')setGrade(0);state=s;announcePhase(s);phaseStart=performance.now();phaseScore=0;phaseSamples=0;lastWattCheck=0;negativeStreak=0;rideTrail=[];lastTrailAt=0;damageFraction=0;playerDamageFraction=0;$('wattStreak').textContent='';charge=0;powerIntegral=0;stopSince=null;lastPedaling=false;defensePassed=false;if(s==='attack'){mode='power';log('PLAYTEST #3: On target deals damage; above target kills faster; below target hurts.')}if(s==='defend')log('DEFEND: Hold target watts while the hill changes.');if(s==='rest'){setGrade(0);log('COMPOSURE: Pedal gently to regain Focus. Hard pedaling does not help.')}if(s==='victory'){kills++;if(rideStats)rideStats.fightsWon++;setGrade(0);log('Victory over '+enemy().name+'! Continue along the road.')}if(s==='recovery'){setGrade(0);log('20-second recovery. Rest or pedal gently; +5 HP, Focus regenerates.')}if(s==='defeat'){setGrade(0);log('Defeat. Your wizard retreats from the village.')}if(s==='complete'){setGrade(0);log('Journey complete!');showRunSummary()} }
 function activateShield(){if(state!=='attack'||shieldRemaining>0||focus<50)return;focus-=50;if(rideStats)rideStats.shieldsUsed++;shieldRemaining=10;log('Arcane Shield activated: 10 seconds of protection!');$('shieldStatus').textContent='SHIELDED 10.0s';$('shieldOverlay').textContent='SHIELDED · 10.0s';$('shieldOverlay').classList.add('active')}
 $('scene').addEventListener('click',activateShield);
-function restart(){rideStats={elapsed:0,workJ:0,virtualKm:0,powerSeconds:0,peakWatts:0,damageDealt:0,damageTaken:0,shieldsUsed:0,fightsWon:0};$('runSummary').classList.add('hide');enemyVisualState='idle';enemyVisualUntil=0;shieldRemaining=0;focusRewardEligible=true;kills=0;encounterIndex=0;journeyProgress=0;sessionStart=performance.now();focus=0;playerHp=30;round=0;attacks=0;setGrade(0);prepareEncounter();setState('ready');log('Journey begins. Pedal to travel.');}
+function restart(){playerVisualState='idle';playerVisualUntil=0;rideStats={elapsed:0,workJ:0,virtualKm:0,powerSeconds:0,peakWatts:0,damageDealt:0,damageTaken:0,shieldsUsed:0,fightsWon:0};$('runSummary').classList.add('hide');enemyVisualState='idle';enemyVisualUntil=0;shieldRemaining=0;focusRewardEligible=true;kills=0;encounterIndex=0;journeyProgress=0;sessionStart=performance.now();focus=0;playerHp=30;round=0;attacks=0;setGrade(0);prepareEncounter();setState('ready');log('Journey begins. Pedal to travel.');}
 $('restart').onclick=restart;$('summaryRestart').onclick=restart;
 function debugSkipPhase(){if(state==='ready'||state==='rest'||state==='defend'){setGrade(0);setState('attack');log('DEBUG: skipped travel to '+enemy().name)}else if(state==='attack'){enemyHp=0;focusRewardEligible=false;setState('victory');log('DEBUG: skipped fight (no Focus reward)')}else if(state==='victory'||state==='recovery'){encounterIndex++;nextEnemy();log('DEBUG: advanced to next encounter')}else if(state==='defeat'||state==='complete'){restart()}}
 $('debugSkip').onclick=debugSkipPhase;
@@ -268,14 +268,14 @@ damageFraction+=below>0?0:monsterMaxHp/(encounterDuration/5000)*(1+above*4);cons
 const taken=Math.round(Math.min(4,unsafeSeconds*.8+below*4));
 enemyHp-=dealt;playerHp=Math.max(0,playerHp-taken);if(rideStats)rideStats.damageTaken+=taken;
 showDamagePopup(dealt,taken,Math.round(avg*b)+'W AVG');
-if(dealt){enemyVisualState='hurt';enemyVisualUntil=now+650}
-if(taken){enemyVisualState='attack';enemyVisualUntil=now+750}
+if(dealt){enemyVisualState='hurt';enemyVisualUntil=now+650;playerVisualState='attack';playerVisualUntil=now+650}
+if(taken){enemyVisualState='attack';enemyVisualUntil=now+750;playerVisualState='hurt';playerVisualUntil=now+750}
 effortSum=0;effortSeconds=0;unsafeSeconds=0;lastWattCheck=elapsed;
 }
 charge=Math.max(0,Math.min(100,(monsterMaxHp-enemyHp)/monsterMaxHp*100));$('targetLabel').textContent='Target '+Math.round(b)+' W';
 if(playerHp<=0){setState('defeat');log('Your wizard fell on the road.')}
 else if(enemyHp<=0){const bonus=focusRewardEligible?Math.max(0,Math.round((encounterDuration-elapsed)/encounterDuration*100)):0;focus=Math.min(100,focus+bonus);spellEffect=now;setState('victory');log('Victory! '+(bonus?'+'+bonus+' Focus':'No Focus reward'))}
-else if(elapsed>=encounterDuration){const penalty=10;playerHp=Math.max(0,playerHp-penalty);if(rideStats)rideStats.damageTaken+=penalty;enemyHp=Math.max(Math.ceil(monsterMaxHp*.5),enemyHp);focusRewardEligible=false;showDamagePopup(0,penalty,'HILL FAILED');log('Hill failed: -10 HP, no Focus reward for this enemy.');if(playerHp<=0)setState('defeat');else setState('attack')}
+else if(elapsed>=encounterDuration){const penalty=10;playerHp=Math.max(0,playerHp-penalty);if(rideStats)rideStats.damageTaken+=penalty;playerVisualState='hurt';playerVisualUntil=now+750;enemyHp=Math.max(Math.ceil(monsterMaxHp*.5),enemyHp);focusRewardEligible=false;showDamagePopup(0,penalty,'HILL FAILED');log('Hill failed: -10 HP, no Focus reward for this enemy.');if(playerHp<=0)setState('defeat');else setState('attack')}
 }
 else if(state==='rest'){const zoneLow=b*.25,zoneHigh=b*.65;if(w>=zoneLow&&w<=zoneHigh)focus=Math.min(100,focus+dt*1.6);if(elapsed>=REST_MS)setState('attack')}
 
@@ -332,6 +332,8 @@ const layeredAssets={
   hurt:'skeleton_hurt.png',
   attack:'skeleton_attack.png',
   staff:'player_staff_idle.png',
+  staffAttack:'player_staff_attack.png',
+  staffHurt:'player_staff_hurt.png',
   swampBg:'bg_swamp_clean.png',
   slimeIdle:'slime_idle.png',
   slimeHurt:'slime_hurt.png',
@@ -381,7 +383,16 @@ function drawLayeredScene(now){
     ctx.fill();
     ctx.drawImage(enemyImage,enemyX,enemyY,enemyW,enemyH);
   }
-  if(layeredImages.staff)ctx.drawImage(layeredImages.staff,212,129,108,111);
+  const handPose=now<playerVisualUntil?playerVisualState:'idle';
+  const handSprite=handPose==='hurt'?(layeredImages.staffHurt||layeredImages.staff):
+    handPose==='attack'?(layeredImages.staffAttack||layeredImages.staff):layeredImages.staff;
+  if(handSprite){
+    // Weapon viewmodel stays anchored to the bottom-right; poses use the same canvas footprint.
+    // Generated image assets are portrait-format and retain their native aspect ratio.
+    const handW=124,handH=Math.round(handW*handSprite.naturalHeight/handSprite.naturalWidth);
+    const handX=196,handY=240-handH+(handPose==='attack'?-7:handPose==='hurt'?7:0);
+    ctx.drawImage(handSprite,handX,handY,handW,handH);
+  }
   if(state==='victory'||state==='defeat'){
     ctx.fillStyle='#090909';ctx.fillRect(98,70,124,30);
     ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 13px monospace';
