@@ -48,11 +48,42 @@ main>.secondary{position:absolute!important;left:auto!important;right:var(--side
 #demoPanel button{width:100%!important}
 @media(max-height:650px){main>.panel:first-of-type{height:130px!important;padding:6px!important}main>.settings{top:130px!important;height:100px!important;padding:6px!important}main>.panel:nth-of-type(2){top:230px!important;bottom:35px!important;padding:6px!important}.extrasToggle{height:35px!important}main>.panel:first-of-type button{padding:4px!important;font-size:10px!important}.connection{font-size:10px!important}.readout{font-size:18px!important}#phaseSteps{margin:4px 0!important}}
 @media(max-width:560px){:root{--side:clamp(155px,43vw,210px)}main>.panel:first-of-type,main>.panel:nth-of-type(2),main>.settings,.extrasToggle{width:var(--side)!important;max-width:none!important;right:0!important}canvas#scene{object-position:center!important}button,select{font-size:10px!important;padding:5px 3px!important;border-width:2px!important}main>.panel:first-of-type{height:142px!important}main>.settings{top:142px!important;height:115px!important}main>.panel:nth-of-type(2){top:257px!important}.connection{font-size:9px!important}}
+
+/* v0.8.6: screenshot-driven landscape polish */
+:root{--side:clamp(310px,29vw,420px)}
+body,button,select,input{font-family:ui-monospace,Consolas,'Courier New',monospace!important}
+main{background:#080808!important}
+canvas#scene{width:calc(100% - var(--side))!important;height:100%!important;object-fit:fill!important;image-rendering:pixelated!important}
+main>h1{position:absolute!important;left:auto!important;right:0!important;top:0!important;width:var(--side)!important;height:52px!important;padding:14px 12px!important;margin:0!important;border-left:3px solid #fff!important;border-bottom:3px solid #fff!important;background:#080808!important;color:#fff!important;font-family:ui-monospace,Consolas,monospace!important;font-size:clamp(16px,1.5vw,23px)!important;white-space:nowrap!important;text-shadow:none!important;z-index:4!important}
+main>h1 .small{font-size:12px!important;color:#ddd!important}
+main>.panel:first-of-type{top:52px!important;height:152px!important;padding:10px 12px!important}
+main>.settings{top:204px!important;height:116px!important;padding:10px 12px!important}
+main>.panel:nth-of-type(2){top:320px!important;bottom:48px!important;padding:12px!important;scrollbar-width:thin!important}
+main>.panel .controls{gap:7px!important}
+button,select{font-size:12px!important;letter-spacing:.01em!important;border:2px solid #f5f5f5!important;padding:8px 7px!important;min-height:34px!important}
+button.primary{background:#fff!important;color:#000!important}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #f1d17e!important;outline-offset:2px!important}
+.connection{color:#c5c5c5!important;font-size:11px!important;line-height:1.35!important}
+.settings label{color:#ddd!important}
+.readout{font-size:clamp(23px,2.3vw,34px)!important;color:#fff!important}
+.meter{height:14px!important;border:2px solid #ddd!important;margin:5px 0 9px!important}
+#chargeBar{background:#e2b86e!important}
+#phaseSteps{gap:5px!important;margin:12px 0!important}
+.phaseStep{font-size:10px!important;padding:7px 2px!important;min-height:30px!important}
+#instruction{font-size:12px!important;line-height:1.45!important;color:#e7e7e7!important;margin:8px 0!important}
+#demoPanel{margin-top:8px!important}
+#demoPanel input[type=range]{accent-color:#e6bc70!important;min-height:24px!important;touch-action:pan-x!important}
+#demoPanel label{font-size:12px!important}
+#precisionVisual .precisionTrack{height:38px!important}
+.extrasToggle{height:48px!important;font-size:12px!important}
+@media(max-height:800px){main>.panel:first-of-type{height:138px!important}main>.settings{top:190px!important;height:102px!important}main>.panel:nth-of-type(2){top:292px!important}.connection{font-size:10px!important}#phaseSteps{margin:6px 0!important}.meter{margin:3px 0 6px!important}}
+@media(max-height:620px){main>h1{height:39px!important;padding:8px!important;font-size:15px!important}main>.panel:first-of-type{top:39px!important;height:120px!important}main>.settings{top:159px!important;height:88px!important}main>.panel:nth-of-type(2){top:247px!important;bottom:36px!important}.extrasToggle{height:36px!important}main>.panel:first-of-type button{min-height:27px!important;padding:4px!important}}
+@media(max-width:650px){:root{--side:clamp(165px,43vw,240px)}main>h1{font-size:12px!important;padding:12px 5px!important}main>h1 .small{font-size:9px!important}main>.panel:first-of-type,main>.settings,main>.panel:nth-of-type(2){padding:6px!important}button,select{font-size:10px!important;padding:5px 3px!important;min-height:28px!important}.readout{font-size:19px!important}}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.5</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.6</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
-<canvas id="scene" width="320" height="180" aria-label="Wizard faces skeleton in abandoned village"></canvas>
+<canvas id="scene" width="320" height="240" aria-label="Wizard faces skeleton in abandoned village"></canvas>
 <section class="panel">
 <div class="bars"><div><div class="row"><b>Wizard</b><span id="playerHp">30 / 30 HP</span></div><div class="meter"><div class="fill health" id="playerBar" style="width:100%"></div></div></div><div><div class="row"><b>Skeleton</b><span id="enemyHp">20 / 20 HP</span></div><div class="meter"><div class="fill health" id="enemyBar" style="width:100%"></div></div></div></div>
 <div style="margin-top:12px"><div class="row"><b>Focus</b><span id="focusValue">50 / 100</span></div><div class="meter"><div class="fill" id="focusBar" style="width:50%;background:#78c5aa"></div></div></div><div class="row" style="margin-top:15px"><div><div class="small">CURRENT POWER</div><div class="readout"><span id="watts">0</span> W</div></div><div style="text-align:right"><div class="small">PHASE</div><div id="phase" class="status">IDLE</div><div id="time" class="small"></div></div></div>
@@ -141,7 +172,7 @@ villageArt.onload=()=>{villageArtReady=true};
 villageArt.onerror=()=>{villageArtReady=false};
 villageArt.src='./pedal-fantasy-village-v083.jpg';
 function draw(now){
-if(villageArtReady){ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,320,180);ctx.drawImage(villageArt,0,0,320,180);if(now-spellEffect<550){ctx.globalAlpha=Math.max(0,1-(now-spellEffect)/550);ctx.fillStyle='#f6b34d';ctx.fillRect(132,53,48,48);ctx.globalAlpha=1}if(state==='victory'||state==='defeat'){ctx.fillStyle='#090909';ctx.fillRect(98,70,124,30);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 13px monospace';ctx.fillText(state==='victory'?'VICTORY':'DEFEAT',160,90)}return;}
+if(villageArtReady){ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,320,180);ctx.drawImage(villageArt,0,0,320,240);if(now-spellEffect<550){ctx.globalAlpha=Math.max(0,1-(now-spellEffect)/550);ctx.fillStyle='#f6b34d';ctx.fillRect(132,53,48,48);ctx.globalAlpha=1}if(state==='victory'||state==='defeat'){ctx.fillStyle='#090909';ctx.fillRect(98,70,124,30);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 13px monospace';ctx.fillText(state==='victory'?'VICTORY':'DEFEAT',160,90)}return;}
 const W=320,H=180,p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))};
 if(!villageReady)paintVillage();ctx.imageSmoothingEnabled=false;ctx.drawImage(villageLayer,0,0);
 const bob=Math.sin(now/270)*1.2;
