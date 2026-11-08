@@ -1,19 +1,63 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trainer Monitor</title><style>body{font:18px system-ui;background:#101827;color:white;max-width:520px;margin:40px auto;padding:20px}button{padding:16px;border:0;border-radius:10px;background:#2563eb;color:white;font-size:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:25px}.tile{background:#1e293b;padding:22px;border-radius:12px}.tile:first-child{grid-column:span 2}.num{font-size:40px;font-weight:bold}</style><h1>🚴 Trainer Monitor</h1><p id="status">Disconnected</p><button id="connect">Connect Trainer</button><div class="grid"><div class="tile">POWER<div class="num" id="power">—</div>watts</div><div class="tile">CADENCE<div class="num" id="cadence">—</div>rpm</div><div class="tile">SPEED<div class="num" id="speed">—</div>km/h (not yet supported)</div></div><script>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trainer Monitor</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif}*{box-sizing:border-box}
+body{margin:0;background:#101827;color:#f8fafc;padding:22px 16px}main{max-width:650px;margin:auto}
+h1{font-size:1.5rem;margin:4px 0}h2{font-size:1rem;margin:0 0 12px}
+.sub{color:#94a3b8;font-size:.85rem}#status{color:#cbd5e1;margin:14px 0}
+button{border:0;border-radius:12px;background:#2563eb;color:#fff;font-size:1rem;padding:13px 18px;cursor:pointer}
+button:disabled{opacity:.55}button.secondary{background:#334155}
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.tile,.panel{background:#1e293b;border-radius:15px;padding:18px}
+.tile.power{grid-column:span 2;text-align:center}
+.label{font-size:.78rem;color:#94a3b8;letter-spacing:.08em}
+.num{font-size:2.2rem;font-weight:750;font-variant-numeric:tabular-nums}
+.power .num{font-size:4.5rem;line-height:1.2}
+.unit{color:#94a3b8;font-size:.85rem}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.stat{background:#1e293b;border-radius:12px;padding:13px 10px;text-align:center}
+.stat .num{font-size:1.35rem}
+.panel{margin-top:12px}canvas{display:block;width:100%;height:210px}
+.note{color:#94a3b8;font-size:.78rem;line-height:1.5}
+</style></head><body><main>
+<h1>🚴 Trainer Monitor <span class="sub">v0.3</span></h1>
+<p id="status" role="status">Disconnected</p>
+<div class="controls"><button id="connect">Connect Magnus</button><button class="secondary" id="reset">Reset session</button></div>
+<div class="grid">
+<div class="tile power"><div class="label">LIVE POWER</div><span class="num" id="power">—</span> <span class="unit">W</span></div>
+<div class="tile"><div class="label">CADENCE</div><div class="num" id="cadence">—</div><span class="unit">rpm · if available</span></div>
+<div class="tile"><div class="label">SPEED</div><div class="num" id="speed">—</div><span class="unit">km/h · not yet available</span></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="label">SESSION</div><div class="num" id="timer">00:00</div></div>
+<div class="stat"><div class="label">AVG POWER</div><div class="num" id="average">—</div><span class="unit">W</span></div>
+<div class="stat"><div class="label">MAX POWER</div><div class="num" id="maximum">—</div><span class="unit">W</span></div>
+</div>
+<section class="panel"><h2>Live power <span class="sub">· last 2 minutes</span></h2><canvas id="graph" aria-label="Live power history chart"></canvas><p class="note">The session starts with the first power reading. Reset clears the timer and graph. Read-only: resistance control comes later.</p></section>
+</main>
+<script>
 const $=id=>document.getElementById(id);
-let previousCrank=null;
+let previousCrank=null,device=null,sessionStart=null,lastPower=null,maxPower=0;
+let history=[],samples=0,sumPower=0;
+const WINDOW_MS=120000;
+function formatTime(ms){const sec=Math.floor(ms/1000);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function resetSession(){sessionStart=null;lastPower=null;maxPower=0;samples=0;sumPower=0;history=[];previousCrank=null;for(const id of ['power','average','maximum','cadence','speed'])$(id).textContent='—';$('timer').textContent='00:00';drawGraph()}
+$('reset').onclick=resetSession;
 function measurement(event){
  const v=event.target.value;let p=0;
- const u8=()=>v.getUint8(p++);
  const u16=()=>{const x=v.getUint16(p,true);p+=2;return x};
  const s16=()=>{const x=v.getInt16(p,true);p+=2;return x};
- const u32=()=>{const x=v.getUint32(p,true);p+=4;return x};
  try{
- const flags=u16();
- $('power').textContent=s16();
+ const flags=u16(),watts=s16(),now=Date.now();
+ if(sessionStart===null)sessionStart=now;
+ lastPower=watts;
+ $('power').textContent=watts;
+ // Cycling Power Measurement optional fields are decoded in Bluetooth SIG order.
  if(flags&1)p+=1; // pedal power balance
  if(flags&2)p+=2; // accumulated torque
- if(flags&4)p+=4; // wheel revolutions
- if(flags&4)p+=2; // last wheel event time
+ if(flags&4)p+=6; // wheel revolution data
  if(flags&8){
    const rev=u16(),time=u16();
    if(previousCrank){
@@ -23,23 +67,51 @@ function measurement(event){
    }
    previousCrank={rev,time};
  }
- $('status').textContent='Connected — receiving power data';
- }catch(err){$('status').textContent='Measurement error: '+err.message;}
+ // Stats use incoming measurement samples; approximate average if notification rate varies.
+ samples++;sumPower+=watts;maxPower=Math.max(maxPower,watts);
+ $('average').textContent=Math.round(sumPower/samples);
+ $('maximum').textContent=maxPower;
+ history.push({t:now,w:watts});
+ history=history.filter(x=>x.t>=now-WINDOW_MS);
+ $('status').textContent='Connected — receiving power';
+ drawGraph();
+ }catch(err){$('status').textContent='Measurement error: '+err.message}
 }
+function drawGraph(){
+ const canvas=$('graph'),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+ const width=Math.max(1,rect.width),height=210;
+ canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
+ const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+ const left=38,right=10,top=12,bottom=26,gw=width-left-right,gh=height-top-bottom;
+ const now=Date.now(),end=Math.max(now,history.length?history[history.length-1].t:now);
+ const start=end-WINDOW_MS;
+ const max=Math.max(200,Math.ceil(Math.max(...history.map(x=>x.w),0)/100)*100);
+ ctx.font='11px system-ui';ctx.fillStyle='#94a3b8';ctx.strokeStyle='#334155';ctx.lineWidth=1;
+ for(let k=0;k<=4;k++){const y=top+gh*k/4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(width-right,y);ctx.stroke();ctx.fillText(Math.round(max*(1-k/4)),2,y+4)}
+ ctx.fillText('−120s',left,height-6);ctx.fillText('now',width-32,height-6);
+ const points=history.filter(x=>x.t>=start);
+ if(!points.length)return;
+ ctx.beginPath();
+ points.forEach((x,i)=>{const px=left+(x.t-start)/WINDOW_MS*gw,py=top+gh-Math.max(0,x.w)/max*gh;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)});
+ ctx.strokeStyle='#60a5fa';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+}
+window.addEventListener('resize',drawGraph);
+setInterval(()=>{if(sessionStart!==null)$('timer').textContent=formatTime(Date.now()-sessionStart);if(history.length)drawGraph()},1000);
+drawGraph();
 $('connect').onclick=async()=>{
  try{
  if(!navigator.bluetooth)throw Error('Web Bluetooth unavailable: open in Chrome on Android');
  $('status').textContent='Choose Magnus…';
- const d=await navigator.bluetooth.requestDevice({filters:[{services:[0x1818]}],optionalServices:[0x180a]});
- d.addEventListener('gattserverdisconnected',()=>{$('status').textContent='Disconnected';$('connect').disabled=false;});
+ device=await navigator.bluetooth.requestDevice({filters:[{services:[0x1818]}],optionalServices:[0x180a]});
+ device.addEventListener('gattserverdisconnected',()=>{$('status').textContent='Disconnected';$('connect').disabled=false;$('connect').textContent='Reconnect Magnus'});
  $('status').textContent='Connecting…';
- const server=await d.gatt.connect();
+ const server=await device.gatt.connect();
  const service=await server.getPrimaryService(0x1818);
  const characteristic=await service.getCharacteristic(0x2a63);
  characteristic.addEventListener('characteristicvaluechanged',measurement);
  await characteristic.startNotifications();
- $('status').textContent='Connected: '+d.name;
- $('connect').disabled=true;
- }catch(err){$('status').textContent=err.name+': '+err.message;}
+ $('status').textContent='Connected: '+device.name;
+ $('connect').disabled=true;$('connect').textContent='Connected';
+ }catch(err){$('status').textContent=err.name+': '+err.message;$('connect').disabled=false}
 };
-</script></html>
+</script></body></html>
