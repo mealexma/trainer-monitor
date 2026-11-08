@@ -172,12 +172,30 @@ html body main :is(#controlsToggle,#debugSkip),html body main button{border:0!im
 #terrainHud .stats{border-right:0!important}
 #playerHud .track,#enemyHud .enemyHudTrack,.meter{background:#080a10!important}
 html body main :is(#enemyHud,#playerHud) *{font-family:'Press Start 2P',monospace!important}
+/* End-of-run presentation */
+#runSummary.hide{display:none!important}
+#runSummary{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+ background:rgba(5,8,18,.95);overflow-y:auto;padding:22px;color:#e9dfc8}
+#runSummary .summaryInner{width:min(840px,96vw);max-height:95vh;overflow:auto;padding:clamp(16px,3vw,32px);
+ background:linear-gradient(150deg,#1b2330,#11101c 85%);box-shadow:0 12px 50px #000b}
+#runSummary .summaryKicker{font:clamp(9px,1vw,13px) 'Press Start 2P',monospace;color:#e5b769;margin-bottom:13px}
+#runSummary h2{font:clamp(14px,2vw,25px)/1.5 'Press Start 2P',monospace;color:#f5df9b;margin:0 0 20px}
+#summaryStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 20px}
+#runSummary .summaryRow{background:#070b13;padding:12px;display:flex;justify-content:space-between;gap:12px;align-items:center;
+ font:clamp(7px,.8vw,11px)/1.65 'Press Start 2P',monospace}
+#runSummary .summaryRow b{color:#c5e8ea;white-space:nowrap}
+.summaryLoot{margin-top:21px;padding:18px;background:#19162b;box-shadow:inset 0 0 27px #342251}
+#lootName{font:clamp(12px,1.3vw,19px)/1.6 'Press Start 2P',monospace;color:#d9a9ff}
+#lootFlavor,#lootEffect,.summaryNote{font:clamp(8px,.8vw,11px)/1.8 'Press Start 2P',monospace}
+#lootEffect{color:#f4bb92}.summaryNote{margin:18px 0;color:#9caab6}
+#summaryRestart{width:100%;padding:14px!important;background:#343050!important;color:#fff!important}
+@media(max-width:720px){#summaryStats{grid-template-columns:1fr}#runSummary .summaryRow{padding:8px}#runSummary .summaryInner{max-height:95dvh}}
 </style></head><body class="controlsHidden"><main>
-<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.8</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.9</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <button type="button" id="controlsToggle" aria-expanded="false" aria-label="Show right controls">SHOW CONTROLS ▶</button><button type="button" id="debugSkip" title="Debug: skip travel or combat, no rewards">⏭ SKIP PHASE</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
-<div id="journeyBadge">THE ROAD · 1 / 6</div><div id="journeyMap"><canvas id="mapCanvas" width="800" height="440"></canvas><div id="mapCaption">PEDAL TO TRAVEL</div></div><div id="shieldOverlay" aria-live="polite"></div><div id="enemyHud"><div class="enemyHudTop"><span id="enemyName">SKELETON SCOUT</span><span id="enemyHp">20 / 20 HP</span></div><div class="enemyHudTrack"><div id="enemyBar" class="enemyHudFill" style="width:100%"></div></div></div><div id="terrainHud"><div class="stats"><div><div class="caption">TARGET</div><div class="number" id="terrainTarget">EASY</div></div><div><div class="caption">YOUR POWER</div><div class="number" id="terrainActual">0 W</div></div></div><div class="plot"><div class="heading"><span id="terrainTitle">APPROACH</span><span id="terrainClock">0/20s</span></div><canvas id="terrainCanvas" width="640" height="170"></canvas></div></div><canvas id="scene" width="320" height="240" aria-label="Wizard faces skeleton in abandoned village"></canvas>
+<div id="runSummary" class="hide" role="dialog" aria-label="Journey results" aria-modal="true"><div class="summaryInner"><div class="summaryKicker">QUEST COMPLETE</div><h2>THE GRAVE KING HAS FALLEN</h2><div id="summaryStats"></div><div class="summaryLoot"><div class="summaryKicker">LOOT FOUND</div><div id="lootName"></div><p id="lootFlavor"></p><p id="lootEffect"></p></div><div class="summaryNote">DISTANCE IS VIRTUAL · CALORIES ESTIMATED · REWARDS NOT SAVED</div><button id="summaryRestart" type="button">BEGIN ANOTHER JOURNEY</button></div></div><div id="journeyBadge">THE ROAD · 1 / 6</div><div id="journeyMap"><canvas id="mapCanvas" width="800" height="440"></canvas><div id="mapCaption">PEDAL TO TRAVEL</div></div><div id="shieldOverlay" aria-live="polite"></div><div id="enemyHud"><div class="enemyHudTop"><span id="enemyName">SKELETON SCOUT</span><span id="enemyHp">20 / 20 HP</span></div><div class="enemyHudTrack"><div id="enemyBar" class="enemyHudFill" style="width:100%"></div></div></div><div id="terrainHud"><div class="stats"><div><div class="caption">TARGET</div><div class="number" id="terrainTarget">EASY</div></div><div><div class="caption">YOUR POWER</div><div class="number" id="terrainActual">0 W</div></div></div><div class="plot"><div class="heading"><span id="terrainTitle">APPROACH</span><span id="terrainClock">0/20s</span></div><canvas id="terrainCanvas" width="640" height="170"></canvas></div></div><canvas id="scene" width="320" height="240" aria-label="Wizard faces skeleton in abandoned village"></canvas>
 <section class="panel">
 <div class="row" style="margin-bottom:8px"><b>ENCOUNTER <span id="encounterCount">1</span></b><span class="small">KILLS <b id="killCount">0</b> · TIME <b id="sessionTime">0:00</b></span></div>
 
@@ -192,7 +210,7 @@ html body main :is(#enemyHud,#playerHud) *{font-family:'Press Start 2P',monospac
 const $=id=>document.getElementById(id);$('extrasToggle').onclick=()=>document.body.classList.toggle('showExtras');$('controlsToggle').onclick=()=>{const hidden=document.body.classList.toggle('controlsHidden');$('controlsToggle').textContent=hidden?'SHOW CONTROLS ▶':'HIDE CONTROLS ◀';$('controlsToggle').setAttribute('aria-expanded',String(!hidden));$('controlsToggle').setAttribute('aria-label',hidden?'Show right controls':'Hide right controls')};
 let device=null,control=null,connected=false,demo=false,demoWatts=0,liveWatts=0,lastReading=0,controlEnabled=false,queue=Promise.resolve(),lastGrade=-1;
 let kills=0,sessionStart=performance.now(),focus=0,state='ready',phaseStart=performance.now(),charge=0,playerHp=30,enemyHp=20,round=0,attacks=0,lastPedaling=false,stopSince=null,mode='power',powerIntegral=0,spellEffect=0,defensePassed=false;
-const ATTACK_MS=60000,DEFENSE_MS=60000,REST_MS=25000,APPROACH_MS=20000,RECOVERY_MS=20000,VICTORY_MS=2500;let phaseScore=0,phaseSamples=0,lastWattCheck=0,negativeStreak=0;let rideTrail=[],lastTrailAt=0,damageFraction=0,playerDamageFraction=0,shieldRemaining=0,windowDealt=0,windowTaken=0,focusRewardEligible=true,enemyVisualState='idle',enemyVisualUntil=0,effortSum=0,effortSeconds=0,unsafeSeconds=0,encounterIndex=0,journeyProgress=0,monsterMaxHp=20,encounterDuration=60000,hill=[],travelDuration=45000,travelProfile=[],travelGradeCap=1.2,travelProgress=0,travelSpeed=1;
+const ATTACK_MS=60000,DEFENSE_MS=60000,REST_MS=25000,APPROACH_MS=20000,RECOVERY_MS=20000,VICTORY_MS=2500;let phaseScore=0,phaseSamples=0,lastWattCheck=0,negativeStreak=0;let rideTrail=[],lastTrailAt=0,damageFraction=0,playerDamageFraction=0,shieldRemaining=0,windowDealt=0,windowTaken=0,focusRewardEligible=true,enemyVisualState='idle',enemyVisualUntil=0,effortSum=0,effortSeconds=0,unsafeSeconds=0,encounterIndex=0,journeyProgress=0,monsterMaxHp=20,encounterDuration=60000,hill=[],travelDuration=45000,travelProfile=[],travelGradeCap=1.2,travelProgress=0,travelSpeed=1,rideStats=null;
 const log=m=>{$('journal').textContent=m+'\n'+$('journal').textContent.slice(0,1400)};
 const baseline=()=>Math.min(350,Math.max(50,Number($('baseline').value)||250));
 const power=()=>demo?demoWatts:(Date.now()-lastReading<2400?liveWatts:0);
@@ -200,11 +218,11 @@ function getTravelSpeed(w,b){const ratio=w/Math.max(1,b*.50);if(ratio<=.6)return
 
 let bannerHideTimer=null;
 function announcePhase(s){const messages={ready:['TRAVEL','Ride toward the next encounter'],rest:['IDLE','Ride easy before attacking'],recovery:['RECOVERY','Prepare for the next enemy'],defend:['DEFEND','Brace for the enemy strike'],attack:['ATTACK','Channel your magic'],victory:['VICTORY','The foe is vanquished'],defeat:['DEFEAT','Your strength has failed']};const [title,subtitle]=messages[s]||messages.ready;const banner=$('phaseBanner');banner.classList.remove('show');banner.dataset.phase=s;$('bannerTitle').textContent=title;$('bannerSubtitle').textContent=subtitle;clearTimeout(bannerHideTimer);void banner.offsetWidth;banner.classList.add('show');bannerHideTimer=setTimeout(()=>banner.classList.remove('show'),2500)}
-function setState(s){if(s==='ready'){travelProgress=0;travelSpeed=1}shieldRemaining=0;windowDealt=0;windowTaken=0;effortSum=0;effortSeconds=0;unsafeSeconds=0;if(s==='rest'||s==='recovery'||s==='victory'||s==='defeat'||s==='complete')setGrade(0);state=s;announcePhase(s);phaseStart=performance.now();phaseScore=0;phaseSamples=0;lastWattCheck=0;negativeStreak=0;rideTrail=[];lastTrailAt=0;damageFraction=0;playerDamageFraction=0;$('wattStreak').textContent='';charge=0;powerIntegral=0;stopSince=null;lastPedaling=false;defensePassed=false;if(s==='attack'){mode='power';log('PLAYTEST #3: On target deals damage; above target kills faster; below target hurts.')}if(s==='defend')log('DEFEND: Hold target watts while the hill changes.');if(s==='rest'){setGrade(0);log('COMPOSURE: Pedal gently to regain Focus. Hard pedaling does not help.')}if(s==='victory'){kills++;setGrade(0);log('Victory over '+enemy().name+'! Continue along the road.')}if(s==='recovery'){setGrade(0);log('20-second recovery. Rest or pedal gently; +5 HP, Focus regenerates.')}if(s==='defeat'){setGrade(0);log('Defeat. Your wizard retreats from the village.')}if(s==='complete'){setGrade(0);log('Journey complete!')} }
-function activateShield(){if(state!=='attack'||shieldRemaining>0||focus<50)return;focus-=50;shieldRemaining=10;log('Arcane Shield activated: 10 seconds of protection!');$('shieldStatus').textContent='SHIELDED 10.0s';$('shieldOverlay').textContent='SHIELDED · 10.0s';$('shieldOverlay').classList.add('active')}
+function setState(s){if(s==='ready'){travelProgress=0;travelSpeed=1}shieldRemaining=0;windowDealt=0;windowTaken=0;effortSum=0;effortSeconds=0;unsafeSeconds=0;if(s==='rest'||s==='recovery'||s==='victory'||s==='defeat'||s==='complete')setGrade(0);state=s;announcePhase(s);phaseStart=performance.now();phaseScore=0;phaseSamples=0;lastWattCheck=0;negativeStreak=0;rideTrail=[];lastTrailAt=0;damageFraction=0;playerDamageFraction=0;$('wattStreak').textContent='';charge=0;powerIntegral=0;stopSince=null;lastPedaling=false;defensePassed=false;if(s==='attack'){mode='power';log('PLAYTEST #3: On target deals damage; above target kills faster; below target hurts.')}if(s==='defend')log('DEFEND: Hold target watts while the hill changes.');if(s==='rest'){setGrade(0);log('COMPOSURE: Pedal gently to regain Focus. Hard pedaling does not help.')}if(s==='victory'){kills++;if(rideStats)rideStats.fightsWon++;setGrade(0);log('Victory over '+enemy().name+'! Continue along the road.')}if(s==='recovery'){setGrade(0);log('20-second recovery. Rest or pedal gently; +5 HP, Focus regenerates.')}if(s==='defeat'){setGrade(0);log('Defeat. Your wizard retreats from the village.')}if(s==='complete'){setGrade(0);log('Journey complete!');showRunSummary()} }
+function activateShield(){if(state!=='attack'||shieldRemaining>0||focus<50)return;focus-=50;if(rideStats)rideStats.shieldsUsed++;shieldRemaining=10;log('Arcane Shield activated: 10 seconds of protection!');$('shieldStatus').textContent='SHIELDED 10.0s';$('shieldOverlay').textContent='SHIELDED · 10.0s';$('shieldOverlay').classList.add('active')}
 $('scene').addEventListener('click',activateShield);
-function restart(){enemyVisualState='idle';enemyVisualUntil=0;shieldRemaining=0;focusRewardEligible=true;kills=0;encounterIndex=0;journeyProgress=0;sessionStart=performance.now();focus=0;playerHp=30;round=0;attacks=0;setGrade(0);prepareEncounter();setState('ready');log('Journey begins. Pedal to travel.');}
-$('restart').onclick=restart;
+function restart(){rideStats={elapsed:0,workJ:0,virtualKm:0,powerSeconds:0,peakWatts:0,damageDealt:0,damageTaken:0,shieldsUsed:0,fightsWon:0};$('runSummary').classList.add('hide');enemyVisualState='idle';enemyVisualUntil=0;shieldRemaining=0;focusRewardEligible=true;kills=0;encounterIndex=0;journeyProgress=0;sessionStart=performance.now();focus=0;playerHp=30;round=0;attacks=0;setGrade(0);prepareEncounter();setState('ready');log('Journey begins. Pedal to travel.');}
+$('restart').onclick=restart;$('summaryRestart').onclick=restart;
 function debugSkipPhase(){if(state==='ready'||state==='rest'||state==='defend'){setGrade(0);setState('attack');log('DEBUG: skipped travel to '+enemy().name)}else if(state==='attack'){enemyHp=0;focusRewardEligible=false;setState('victory');log('DEBUG: skipped fight (no Focus reward)')}else if(state==='victory'||state==='recovery'){encounterIndex++;nextEnemy();log('DEBUG: advanced to next encounter')}else if(state==='defeat'||state==='complete'){restart()}}
 $('debugSkip').onclick=debugSkipPhase;
 $('demo').onclick=()=>{if(device?.gatt?.connected)device.gatt.disconnect();demo=true;connected=false;control=null;controlEnabled=false;$('demoPanel').classList.remove('hide');$('connection').textContent='Demo mode · simulated wattage';$('enableControl').disabled=true;$('zero').disabled=true;restart()};
@@ -234,8 +252,8 @@ const hillGrade=t=>Math.round(Math.max(0,terrainLevel(t)*HILL_MAX_GRADE)*2)/2;
 function terrainLevel(t){let x=Math.max(0,Math.min(1,t))*(hill.length-1),i=Math.min(hill.length-2,Math.floor(x));return hill[i]+(hill[i+1]-hill[i])*(x-i)}
 const terrainCtx=$('terrainCanvas').getContext('2d');function renderTerrain(now,w){let active=state==='defend'||state==='attack',total=active?encounterDuration:state==='ready'?travelDuration:state==='rest'?REST_MS:RECOVERY_MS,t=state==='ready'?travelProgress:Math.max(0,Math.min(1,(now-phaseStart)/total)),target=Math.round(baseline());$('terrainTarget').textContent=active?target+' W':'EASY';$('terrainActual').textContent=Math.round(w)+' W';$('terrainClock').textContent=state==='ready'?Math.round(t*100)+'% ROUTE':Math.floor(t*total/1000)+'/'+Math.round(total/1000)+'s';$('terrainTitle').textContent=active?state.toUpperCase()+' · '+hillGrade(t).toFixed(1)+'% HILL':state==='ready'?'TRAVEL '+travelSpeed.toFixed(2)+'x · '+(travelLevel(t)*travelGradeCap).toFixed(1)+'%':'RECOVERY';let c=terrainCtx,W=c.canvas.width,H=c.canvas.height,L=8,R=W-8,B=H-20,T=8;c.fillStyle='#101116';c.fillRect(0,0,W,H);for(let i=0;i<100;i++){let v=active?terrainLevel(i/100):.27,x=L+(R-L)*i/100,y=B-v*(B-T)*.95,hue=v<.45?110:v<.62?57:v<.78?29:3;c.fillStyle='hsla('+hue+',85%,48%,.8)';c.fillRect(x,y,(R-L)/100+1,B-y)}c.beginPath();for(let i=0;i<=100;i++){let v=active?terrainLevel(i/100):.27,x=L+(R-L)*i/100,y=B-v*(B-T)*.95;if(i===0)c.moveTo(x,y);else c.lineTo(x,y)}c.strokeStyle='#fff';c.lineWidth=3;c.stroke();let mx=L+(R-L)*t,my=B-(active?terrainLevel(t):.27)*(B-T)*.95;c.beginPath();c.moveTo(mx,T);c.lineTo(mx,B);c.stroke();const ratio=w/Math.max(1,target),deviation=ratio-1,watty=Math.max(T+7,Math.min(B-7,my-deviation*(B-T)*.75));if(active&&rideTrail.length){for(let j=1;j<rideTrail.length;j++){const [x0,w0]=rideTrail[j-1],[x1,w1,protectedSample]=rideTrail[j];const y0=Math.max(T+7,Math.min(B-7,B-terrainLevel(x0)*(B-T)*.95-(w0-1)*(B-T)*.75)),y1=Math.max(T+7,Math.min(B-7,B-terrainLevel(x1)*(B-T)*.95-(w1-1)*(B-T)*.75));c.beginPath();c.moveTo(L+(R-L)*x0,y0);c.lineTo(L+(R-L)*x1,y1);c.strokeStyle=protectedSample?'#668dff':'#80eaff';c.lineWidth=protectedSample?4:2.5;c.stroke()}}c.fillStyle='rgba(30,30,40,.82)';c.fillRect(Math.max(L,mx-43),Math.max(T,watty-24),86,16);c.font='bold 12px monospace';c.textAlign='center';c.fillStyle=shieldRemaining>0?'#88b5ff':ratio<1-WATT_TOLERANCE?'#ff6c6c':ratio>1+WATT_TOLERANCE?'#69efa0':'#f9e7a9';c.fillText(Math.round(w)+'W',mx,Math.max(T+12,watty-12));c.beginPath();c.arc(mx,watty,7,0,Math.PI*2);c.fill();c.strokeStyle='#141414';c.lineWidth=2;c.stroke();c.textAlign='left';c.font='12px monospace';c.fillText('0s',L,B+15);c.fillText(Math.round(total/1000)+'s',R-35,B+15)}
 function showDamagePopup(dealt,taken,extra=''){if(!dealt&&!taken&&!extra)return;const el=$('wattPopup');el.classList.remove('show');el.textContent=(extra?extra+'\n':'')+(dealt>0?dealt+' DMG':'')+(dealt>0&&taken>0?'\n':'')+(taken>0?'-'+taken+' HP':'');el.className=taken>0?'negative':dealt>0?'positive':'neutral';void el.offsetWidth;el.classList.add('show')}
-function update(now){const frameMs=Math.max(0,Math.min(1000,now-last)),dt=Math.min(.12,frameMs/1000);last=now;const w=power(),b=baseline(),pedaling=w>Math.max(20,b*.18),paused=!pedaling&&state!=='defeat';if(paused){phaseStart+=frameMs;sessionStart+=frameMs;lastHillCommandAt+=frameMs}const elapsed=now-phaseStart;const pauseLabel=$('pedalPause');pauseLabel.classList.toggle('hide',!paused);if(paused)pauseLabel.textContent=elapsed<500&&state==='ready'?'PEDAL TO START':'PAUSED · PEDAL TO CONTINUE';if(paused){$('watts').textContent=Math.round(w);renderTerrain(now,w);$('time').textContent=state==='ready'?Math.round(travelProgress*100)+'% route':Math.max(0,Math.ceil(((state==='defend'?DEFENSE_MS:state==='attack'?encounterDuration:state==='rest'?REST_MS:RECOVERY_MS)-elapsed)/1000))+' s left';if(state==='ready')drawMap(travelProgress);draw(now);requestAnimationFrame(update);return}
-if(state==='ready'){travelSpeed=getTravelSpeed(w,b);travelProgress=Math.min(1,travelProgress+frameMs/Math.max(1,travelDuration)*travelSpeed)}$('watts').textContent=Math.round(w);renderTerrain(now,w);if(state==='attack'&&now-lastTrailAt>=180){lastTrailAt=now;rideTrail.push([Math.max(0,Math.min(1,elapsed/encounterDuration)),w/b,shieldRemaining>0]);}if((state==='defend'||state==='attack'||state==='ready')&&controlEnabled&&control&&now-lastHillCommandAt>2200){lastHillCommandAt=now;setGrade(state==='ready'?Math.round(travelLevel(travelProgress)*travelGradeCap*2)/2:hillGrade(elapsed/(state==='defend'?DEFENSE_MS:encounterDuration)))}
+function update(now){const frameMs=Math.max(0,Math.min(1000,now-last)),dt=Math.min(.12,frameMs/1000);last=now;const w=power(),b=baseline(),pedaling=w>Math.max(20,b*.18),paused=!pedaling&&!['defeat','victory','complete'].includes(state);if(paused){phaseStart+=frameMs;sessionStart+=frameMs;lastHillCommandAt+=frameMs}const elapsed=now-phaseStart;const pauseLabel=$('pedalPause');pauseLabel.classList.toggle('hide',!paused);if(paused)pauseLabel.textContent=elapsed<500&&state==='ready'?'PEDAL TO START':'PAUSED · PEDAL TO CONTINUE';if(paused){$('watts').textContent=Math.round(w);renderTerrain(now,w);$('time').textContent=state==='ready'?Math.round(travelProgress*100)+'% route':Math.max(0,Math.ceil(((state==='defend'?DEFENSE_MS:state==='attack'?encounterDuration:state==='rest'?REST_MS:RECOVERY_MS)-elapsed)/1000))+' s left';if(state==='ready')drawMap(travelProgress);draw(now);requestAnimationFrame(update);return}
+if(rideStats&&!['complete','defeat'].includes(state)){const seconds=frameMs/1000;rideStats.elapsed+=seconds;rideStats.workJ+=Math.max(0,w)*seconds;rideStats.powerSeconds+=seconds;rideStats.peakWatts=Math.max(rideStats.peakWatts,w);const virtualKmh=state==='ready'?14+Math.min(10,Math.max(0,w)/Math.max(1,b*.5)*5):12+Math.min(9,Math.max(0,w)/Math.max(1,b)*5);rideStats.virtualKm+=virtualKmh*seconds/3600}if(state==='ready'){travelSpeed=getTravelSpeed(w,b);travelProgress=Math.min(1,travelProgress+frameMs/Math.max(1,travelDuration)*travelSpeed)}$('watts').textContent=Math.round(w);renderTerrain(now,w);if(state==='attack'&&now-lastTrailAt>=180){lastTrailAt=now;rideTrail.push([Math.max(0,Math.min(1,elapsed/encounterDuration)),w/b,shieldRemaining>0]);}if((state==='defend'||state==='attack'||state==='ready')&&controlEnabled&&control&&now-lastHillCommandAt>2200){lastHillCommandAt=now;setGrade(state==='ready'?Math.round(travelLevel(travelProgress)*travelGradeCap*2)/2:hillGrade(elapsed/(state==='defend'?DEFENSE_MS:encounterDuration)))}
 if(state==='ready'){if(travelProgress>=1){journeyProgress=encounterIndex+1;setGrade(0);setState('attack')}}
 else if(state==='victory'){if(elapsed>=VICTORY_MS){encounterIndex++;nextEnemy()}}
 else if(state==='recovery'){if(elapsed>=RECOVERY_MS){encounterIndex++;nextEnemy()}}
@@ -246,9 +264,9 @@ if(ratio<1-WATT_TOLERANCE&&!protectedNow)unsafeSeconds+=dt;
 if(elapsed-lastWattCheck>=5000||elapsed>=encounterDuration){
 const avg=effortSeconds?effortSum/effortSeconds:0;
 const below=Math.max(0,1-WATT_TOLERANCE-avg),above=Math.max(0,avg-1-WATT_TOLERANCE);
-damageFraction+=below>0?0:monsterMaxHp/(encounterDuration/5000)*(1+above*4);const dealt=Math.min(enemyHp,Math.floor(damageFraction+1e-7));damageFraction-=dealt;
+damageFraction+=below>0?0:monsterMaxHp/(encounterDuration/5000)*(1+above*4);const dealt=Math.min(enemyHp,Math.floor(damageFraction+1e-7));damageFraction-=dealt;if(rideStats)rideStats.damageDealt+=dealt;
 const taken=Math.round(Math.min(4,unsafeSeconds*.8+below*4));
-enemyHp-=dealt;playerHp=Math.max(0,playerHp-taken);
+enemyHp-=dealt;playerHp=Math.max(0,playerHp-taken);if(rideStats)rideStats.damageTaken+=taken;
 showDamagePopup(dealt,taken,Math.round(avg*b)+'W AVG');
 if(dealt){enemyVisualState='hurt';enemyVisualUntil=now+650}
 if(taken){enemyVisualState='attack';enemyVisualUntil=now+750}
@@ -257,7 +275,7 @@ effortSum=0;effortSeconds=0;unsafeSeconds=0;lastWattCheck=elapsed;
 charge=Math.max(0,Math.min(100,(monsterMaxHp-enemyHp)/monsterMaxHp*100));$('targetLabel').textContent='Target '+Math.round(b)+' W';
 if(playerHp<=0){setState('defeat');log('Your wizard fell on the road.')}
 else if(enemyHp<=0){const bonus=focusRewardEligible?Math.max(0,Math.round((encounterDuration-elapsed)/encounterDuration*100)):0;focus=Math.min(100,focus+bonus);spellEffect=now;setState('victory');log('Victory! '+(bonus?'+'+bonus+' Focus':'No Focus reward'))}
-else if(elapsed>=encounterDuration){const penalty=10;playerHp=Math.max(0,playerHp-penalty);enemyHp=Math.max(Math.ceil(monsterMaxHp*.5),enemyHp);focusRewardEligible=false;showDamagePopup(0,penalty,'HILL FAILED');log('Hill failed: -10 HP, no Focus reward for this enemy.');if(playerHp<=0)setState('defeat');else setState('attack')}
+else if(elapsed>=encounterDuration){const penalty=10;playerHp=Math.max(0,playerHp-penalty);if(rideStats)rideStats.damageTaken+=penalty;enemyHp=Math.max(Math.ceil(monsterMaxHp*.5),enemyHp);focusRewardEligible=false;showDamagePopup(0,penalty,'HILL FAILED');log('Hill failed: -10 HP, no Focus reward for this enemy.');if(playerHp<=0)setState('defeat');else setState('attack')}
 }
 else if(state==='rest'){const zoneLow=b*.25,zoneHigh=b*.65;if(w>=zoneLow&&w<=zoneHigh)focus=Math.min(100,focus+dt*1.6);if(elapsed>=REST_MS)setState('attack')}
 
@@ -305,6 +323,10 @@ villageArt.src='./pedal-fantasy-village-v083.jpg';
 // The original single-image village stays active until the clean background
 // and the idle skeleton have both loaded. Hurt/attack fall back to idle.
 const layeredAssets={
+  castleBg:'bg_castle_clean.png',
+  graveKingIdle:'grave_king_idle.png',
+  graveKingHurt:'grave_king_hurt.png',
+  graveKingAttack:'grave_king_attack.png',
   bg:'bg_village_clean.png',
   idle:'skeleton_idle.png',
   hurt:'skeleton_hurt.png',
@@ -324,11 +346,14 @@ for(const [key,url] of Object.entries(layeredAssets)){
 }
 function drawLayeredScene(now){
   if(!layeredImages.bg||!layeredImages.idle)return false;
+  const isBoss=enemy().kind==='boss';
   const isSlime=enemy().kind==='slime';
-  const background=isSlime?(layeredImages.swampBg||layeredImages.bg):layeredImages.bg;
-  const baseEnemy=isSlime?(layeredImages.slimeIdle||layeredImages.idle):layeredImages.idle;
+  const background=isBoss?(layeredImages.castleBg||layeredImages.bg):isSlime?(layeredImages.swampBg||layeredImages.bg):layeredImages.bg;
+  const baseEnemy=isBoss?(layeredImages.graveKingIdle||layeredImages.idle):isSlime?(layeredImages.slimeIdle||layeredImages.idle):layeredImages.idle;
   const pose=now<enemyVisualUntil?enemyVisualState:'idle';
-  const sprite=isSlime
+  const sprite=isBoss
+    ?(pose==='hurt'?layeredImages.graveKingHurt:pose==='attack'?layeredImages.graveKingAttack:null)
+    :isSlime
     ?(pose==='hurt'?layeredImages.slimeHurt:pose==='attack'?layeredImages.slimeAttack:null)
     :(pose==='hurt'?layeredImages.hurt:pose==='attack'?layeredImages.attack:null);
   const enemyImage=sprite||baseEnemy;
@@ -346,13 +371,13 @@ function drawLayeredScene(now){
     const frame=pose==='idle'?idleFrames[Math.floor(now/135)%idleFrames.length]:[0,0,0,0];
     const recoil=pose==='hurt'?-4:0;
     const advance=pose==='attack'?8:0;
-    const baseW=isSlime?158:112,baseH=isSlime?146:114;
+    const baseW=isBoss?154:isSlime?158:112,baseH=isBoss?173:isSlime?146:114;
     const enemyW=baseW+advance+frame[2],enemyH=baseH+advance+frame[3];
-    const enemyX=Math.round((isSlime?81:124)+recoil-Math.round(advance/3)+frame[0]-frame[2]/2);
-    const enemyY=Math.round((isSlime?24:79)+(pose==='hurt'?-2:0)+frame[1]-frame[3]);
+    const enemyX=Math.round((isBoss?83:isSlime?81:124)+recoil-Math.round(advance/3)+frame[0]-frame[2]/2);
+    const enemyY=Math.round((isBoss?11:isSlime?24:79)+(pose==='hurt'?-2:0)+frame[1]-frame[3]);
     ctx.fillStyle='rgba(0,0,0,.34)';
     ctx.beginPath();
-    ctx.ellipse(isSlime?160:181,isSlime?167:193,isSlime?57:40,7,0,0,Math.PI*2);
+    ctx.ellipse(isBoss?160:isSlime?160:181,isBoss?186:isSlime?167:193,isBoss?61:isSlime?57:40,7,0,0,Math.PI*2);
     ctx.fill();
     ctx.drawImage(enemyImage,enemyX,enemyY,enemyW,enemyH);
   }
@@ -364,6 +389,36 @@ function drawLayeredScene(now){
   }
   ctx.restore();
   return true;
+}
+// All rewards are flavor-only for this playtest, with no save or stat effects.
+const lootTable=[
+{title:'Necklace of the Lost Princess',flavor:'A silver necklace destined for a princess. Its jewel grows warm as your pace steadies.',effect:'CURSE: While holding baseline power, you would take DOUBLE incoming damage. Deliver it to the princess to lift the curse.'},
+{title:'Ironroot Shield',flavor:'A sturdy shield grown around the roots of an ancient oak.',effect:'PERK: Arcane Shield would last 3 seconds longer.'},
+{title:'Wayfarer Boots',flavor:'Boots that remember every trail they have crossed.',effect:'PERK: Travel speed would increase by 10%.'},
+{title:'Cracked Ember Staff',flavor:'An ember burns inside the wood.',effect:'PERK: 15% more magic damage above target. DRAWBACK: 5 fewer maximum HP.'},
+{title:'Marshglass Pendant',flavor:'A trapped swamp light glows beneath green glass.',effect:'PERK: Ignore the first weak enemy strike in each fight.'},
+{title:'Crown of Ashes',flavor:'The broken crown of an ancient ruler.',effect:'PERK: 25 more maximum Focus. CURSE: No bonus travel speed.'}
+];
+function showRunSummary(){
+const a=rideStats;if(!a)return;
+const mins=Math.floor(a.elapsed/60),secs=Math.floor(a.elapsed%60);
+const avg=a.powerSeconds?Math.round(a.workJ/a.powerSeconds):0;
+const kcal=Math.round(a.workJ/(.24*4184)); // mechanical work, estimated 24% gross efficiency
+const pairs=[
+['RIDE TIME',mins+':'+String(secs).padStart(2,'0')],
+['VIRTUAL DISTANCE',a.virtualKm.toFixed(2)+' km'],
+['EST. CALORIES',kcal+' kcal'],
+['AVG / PEAK POWER',avg+' / '+Math.round(a.peakWatts)+' W'],
+['WORK',Math.round(a.workJ/1000)+' kJ'],
+['ENEMIES DEFEATED',a.fightsWon+' / '+journey.length],
+['DAMAGE DEALT / TAKEN',a.damageDealt+' / '+a.damageTaken],
+['SHIELDS USED',a.shieldsUsed+'']
+];
+$('summaryStats').replaceChildren();
+for(const [name,value] of pairs){const row=document.createElement('div');row.className='summaryRow';const lab=document.createElement('span');lab.textContent=name;const val=document.createElement('b');val.textContent=value;row.append(lab,val);$('summaryStats').append(row)}
+const loot=lootTable[Math.floor(Math.random()*lootTable.length)];
+$('lootName').textContent=loot.title;$('lootFlavor').textContent=loot.flavor;$('lootEffect').textContent=loot.effect;
+$('runSummary').classList.remove('hide');
 }
 const mapCanvas=$('mapCanvas'),mapCtx=mapCanvas.getContext('2d');
 function drawMap(p){const c=mapCtx,W=800,H=440;c.clearRect(0,0,W,H);c.fillStyle='#17231c';c.fillRect(0,0,W,H);const rand=(i,j)=>{const z=Math.sin(i*127.1+j*311.7)*43758.5453;return z-Math.floor(z)};for(let y=0;y<22;y++)for(let x=0;x<40;x++){const n=rand(x,y);c.fillStyle=n>.65?'#263e2f':n>.3?'#1c3028':'#172a24';c.fillRect(x*20,y*20,19,19);if(n>.88){c.fillStyle='#3c5541';c.beginPath();c.moveTo(x*20+10,y*20);c.lineTo(x*20+2,y*20+18);c.lineTo(x*20+18,y*20+18);c.fill()}}const nodes=[[72,315],[184,250],[290,302],[401,195],[531,235],[652,120],[745,74]];c.lineCap='round';c.lineJoin='round';c.strokeStyle='#0e1614';c.lineWidth=22;c.beginPath();nodes.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();c.strokeStyle='#a08d68';c.lineWidth=14;c.stroke();c.setLineDash([3,12]);c.strokeStyle='#d4c5a2';c.lineWidth=2;c.stroke();c.setLineDash([]);const names=['START','VILLAGE','BRIDGE','MARSH','BOG','FORTRESS','CASTLE'];nodes.forEach(([x,y],i)=>{c.fillStyle=i<=encounterIndex+1?'#f2c67c':'#77837d';c.beginPath();c.arc(x,y,9,0,Math.PI*2);c.fill();c.strokeStyle='#101e1a';c.lineWidth=3;c.stroke();c.font='bold 16px monospace';c.textAlign='center';c.fillStyle='#f4ddbb';c.fillText(names[i],x,Math.min(426,y+34))});let segment=Math.min(encounterIndex,5),t=state==='complete'?1:state==='recovery'?1:state==='ready'?p:1;let a=nodes[segment],b=nodes[segment+1],mx=a[0]+(b[0]-a[0])*t,my=a[1]+(b[1]-a[1])*t;c.fillStyle='#69e9e2';c.beginPath();c.arc(mx,my,13,0,Math.PI*2);c.fill();c.strokeStyle='#efffff';c.lineWidth=3;c.stroke();c.font='bold 18px monospace';c.fillStyle='#fff';c.fillText('YOU',mx,my-20)}
