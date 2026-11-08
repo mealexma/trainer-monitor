@@ -92,8 +92,14 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 #phaseBanner[data-phase=rest] .phaseTitle,#phaseBanner[data-phase=ready] .phaseTitle{color:#e9d9ae}
 @media(max-width:650px){#phaseBanner{height:70px}#phaseBanner .ribbon{padding:9px 22px;min-width:88%}#phaseBanner .ribbon:before{left:7px}#phaseBanner .ribbon:after{right:7px}#phaseBanner .phaseTitle{font-size:24px;letter-spacing:.05em}}
 @media(prefers-reduced-motion:reduce){#phaseBanner{transition:none}}
+/* Pixel lettering for combat announcements and game HUD */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+#phaseBanner .phaseTitle{font-family:'Press Start 2P',monospace!important;font-variant:normal!important;font-weight:400!important;font-size:clamp(15px,2.2vw,27px)!important;letter-spacing:.04em!important;line-height:1.5!important}
+#phaseBanner .phaseSubtitle{font-family:'Press Start 2P',monospace!important;font-size:clamp(7px,.75vw,10px)!important;line-height:1.7!important;letter-spacing:0!important}
+main>h1{font-family:'Press Start 2P',monospace!important;font-size:clamp(11px,1.05vw,16px)!important;letter-spacing:-.05em!important;line-height:1.6!important}
+@media(max-width:650px){#phaseBanner .phaseTitle{font-size:13px!important}#phaseBanner .phaseSubtitle{font-size:7px!important}main>h1{font-size:9px!important}}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.7</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.8</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
