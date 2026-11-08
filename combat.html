@@ -49,7 +49,7 @@ main>.secondary{position:absolute!important;left:auto!important;right:var(--side
 @media(max-height:650px){main>.panel:first-of-type{height:130px!important;padding:6px!important}main>.settings{top:130px!important;height:100px!important;padding:6px!important}main>.panel:nth-of-type(2){top:230px!important;bottom:35px!important;padding:6px!important}.extrasToggle{height:35px!important}main>.panel:first-of-type button{padding:4px!important;font-size:10px!important}.connection{font-size:10px!important}.readout{font-size:18px!important}#phaseSteps{margin:4px 0!important}}
 @media(max-width:560px){:root{--side:clamp(155px,43vw,210px)}main>.panel:first-of-type,main>.panel:nth-of-type(2),main>.settings,.extrasToggle{width:var(--side)!important;max-width:none!important;right:0!important}canvas#scene{object-position:center!important}button,select{font-size:10px!important;padding:5px 3px!important;border-width:2px!important}main>.panel:first-of-type{height:142px!important}main>.settings{top:142px!important;height:115px!important}main>.panel:nth-of-type(2){top:257px!important}.connection{font-size:9px!important}}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.3</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.4</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <canvas id="scene" width="320" height="180" aria-label="Wizard faces skeleton in abandoned village"></canvas>
@@ -136,7 +136,13 @@ ctx.fillStyle='#c4c0bd';ctx.beginPath();ctx.arc(273,17,9,0,Math.PI*2);ctx.fill()
 for(let i=0;i<160;i++){const x=noise(i,92)*320,y=noise(i,97)*180;if(y<99||noise(i,98)<.45)continue;p(x,y,1,1,noise(i,99)>.6?'#988a7a':'#4d514f')}
 villageReady=true;
 }
+// Static illustrated encounter: uses the authored village artwork when available.
+const villageArt=new Image();let villageArtReady=false;
+villageArt.onload=()=>{villageArtReady=true};
+villageArt.onerror=()=>{villageArtReady=false};
+villageArt.src='./pedal-fantasy-village-v083.jpg';
 function draw(now){
+if(villageArtReady){ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,320,180);ctx.drawImage(villageArt,0,0,320,180);if(now-spellEffect<550){ctx.globalAlpha=Math.max(0,1-(now-spellEffect)/550);ctx.fillStyle='#f6b34d';ctx.fillRect(132,53,48,48);ctx.globalAlpha=1}if(state==='victory'||state==='defeat'){ctx.fillStyle='#090909';ctx.fillRect(98,70,124,30);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 13px monospace';ctx.fillText(state==='victory'?'VICTORY':'DEFEAT',160,90)}return;}
 const W=320,H=180,p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))};
 if(!villageReady)paintVillage();ctx.imageSmoothingEnabled=false;ctx.drawImage(villageLayer,0,0);
 const bob=Math.sin(now/270)*1.2;
