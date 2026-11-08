@@ -7,7 +7,7 @@ html,body{height:100%;overflow:hidden}body{overscroll-behavior:none}main{height:
 /* First-person fullscreen playtest */
 body{background:#10161f}main{position:relative;width:100vw;max-width:none;height:100dvh;padding:0;display:block;overflow:hidden}canvas#scene{position:absolute;inset:0;width:100%;height:100%;max-height:none;min-height:0;object-fit:cover;image-rendering:pixelated;border-radius:0;z-index:0}h1{position:absolute;z-index:2;top:8px;left:12px;font-size:17px;text-shadow:2px 2px #10151c}main>.panel{position:absolute;z-index:3;background:rgba(18,25,37,.88);border-color:#586077;backdrop-filter:blur(3px)}main>.panel:first-of-type{top:40px;left:8px;right:auto;max-width:300px}main>.panel:nth-of-type(2){bottom:8px;left:8px;right:8px;max-width:none;padding:9px 12px}main>.settings{top:42px;right:8px;left:auto;max-width:330px}main>.secondary{display:none}.extrasToggle{position:absolute;z-index:5;right:10px;bottom:190px}.showExtras main{overflow:hidden}.showExtras .secondary{display:block;position:absolute;right:8px;top:150px;max-width:340px;max-height:35vh;overflow:auto}.showExtras main>.secondary:last-of-type{top:auto;bottom:220px}.showExtras .settingsHelp,.showExtras .modeHelp{display:none}.showExtras canvas#scene{height:100%;max-height:none}.precisionTrack{height:45px!important}#precisionVisual{max-width:550px;margin:auto}#phaseSteps{justify-content:center}.bars{max-width:550px;margin:auto}.connection{max-width:260px}.settings h2{display:none}.settings .controls{display:flex;flex-wrap:wrap}.settings select{max-width:220px}#instruction{text-align:center;font-weight:650;color:#f4e3bf}#phase{text-shadow:0 1px #000}#chargeBar{transition:width .1s}.phaseStep.active{box-shadow:0 0 12px #d6b47880}@media(max-width:700px){main>.panel:first-of-type{top:34px;max-width:47vw}main>.settings{top:34px;max-width:49vw}main>.panel:first-of-type button{font-size:10px;padding:5px}.settings select{max-width:100%;font-size:11px}.settings label{font-size:10px}main>.panel:nth-of-type(2){padding:5px 8px}.extrasToggle{bottom:175px}.connection{font-size:10px}h1{font-size:15px}}@media(max-height:620px){main>.panel:nth-of-type(2){bottom:3px}.extrasToggle{bottom:155px}#precisionVisual .precisionTrack{height:28px!important}#precisionVisual p{display:none}main>.panel:first-of-type,.settings{padding:4px!important}}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.6</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.7</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <canvas id="scene" width="320" height="180" aria-label="Wizard faces skeleton in abandoned village"></canvas>
@@ -69,32 +69,39 @@ draw(now);requestAnimationFrame(update)}
 const canvas=$('scene'),ctx=canvas.getContext('2d');
 function draw(now){
 const W=320,H=180,p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))};
-ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,W,H);
-p(0,0,W,94,'#253448');p(0,48,W,45,'#354052');p(0,90,W,90,'#343b3c');
-for(let i=0;i<30;i++){const x=(i*71)%320,y=8+(i*29)%62;p(x,y,2,2,i%3?'#657080':'#d5c2a1')}
-for(let i=0;i<8;i++){const x=i*49-16,h=34+(i*19)%33;p(x,95-h,39,h,'#303442');p(x+5,95-h+8,7,10,'#a27b48');p(x+23,95-h+8,7,10,'#665743');p(x-5,95-h,49,4,'#4b3e40');p(x+8,95-h-7,24,7,'#51434a')}
-p(0,96,320,84,'#38433f');
-for(let i=0;i<18;i++){const x=(i*83)%320,y=97+(i*31)%78;p(x,y,9,4,i%2?'#465047':'#51524b')}
-ctx.fillStyle='#77736a';ctx.beginPath();ctx.moveTo(118,95);ctx.lineTo(200,95);ctx.lineTo(305,180);ctx.lineTo(19,180);ctx.fill();
-for(let i=0;i<9;i++){const y=100+i*i*.95;p(120-i*11,y,80+i*22,1,'#595952')}
-const bob=(state==='ready'||state==='rest')?Math.sin(now/450)*1.5:Math.sin(now/180)*.7;
-ctx.save();ctx.translate(160,102+bob);const scale=1.18;ctx.scale(scale,scale);
-const bone='#e6dcc0',shade='#a99e8d',dark='#25262d';
-p(-10,-32,20,21,bone);p(-13,-26,26,13,bone);p(-8,-22,6,5,dark);p(4,-22,6,5,dark);p(-2,-14,4,4,dark);
-p(-12,-9,24,6,shade);p(-14,-3,28,25,bone);p(-9,2,18,4,dark);p(-9,10,18,3,dark);p(-2,-3,4,25,shade);
-p(-20,-1,7,27,bone);p(13,-1,7,27,bone);p(-20,22,8,6,shade);p(12,22,8,6,shade);
-p(-10,21,20,7,shade);p(-10,28,7,25,bone);p(4,28,7,25,bone);p(-12,50,10,5,shade);p(4,50,10,5,shade);
-p(18,-11,4,48,'#6b5949');p(16,-17,8,9,'#b9b7aa');
-if(state==='defend'){p(-31,2,6,31,'#9c8b7d');p(-34,-1,13,7,'#d2d0b7')}
+const poly=(pts,col)=>{ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);ctx.closePath();ctx.fill()};
+const noise=(x,y)=>{let n=(x*374761393+y*668265263)|0;n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295};
+ctx.imageSmoothingEnabled=false;
+p(0,0,W,102,'#53505c');for(let y=0;y<100;y+=3)for(let x=0;x<W;x+=5){let n=noise(x,y);if(n>.42)p(x,y,5,3,n>.75?'#605968':'#4b4b59')}
+poly([0,86,23,63,40,78,58,51,80,76,104,54,133,88,160,62,198,83,220,55,254,80,282,56,320,75,320,110,0,110],'#353846');
+p(0,99,W,81,'#393d39');
+const house=(x,y,w,h)=>{p(x,y-h,w,h,'#69605a');p(x+4,y-h+5,w-8,h-8,'#87776b');for(let iy=y-h+3;iy<y;iy+=6)for(let ix=x+2;ix<x+w-2;ix+=11){let n=noise(ix,iy);p(ix+(iy%3),iy,10,1,n>.5?'#524e4d':'#a29281');if(n>.72)p(ix+2,iy+2,4,3,'#70665e')}
+poly([x-8,y-h+3,x+w/2,y-h-19,x+w+7,y-h+3],'#473d3d');for(let i=0;i<9;i++)p(x-5+i*w/9,y-h-1-i%2*2,Math.ceil(w/9),2,'#71504a');
+p(x+w*.18,y-h*.6,w*.21,h*.26,'#201f27');p(x+w*.64,y-h*.6,w*.17,h*.25,'#29272a');p(x+w*.24,y-h*.55,2,h*.16,'#655d57');p(x+w*.68,y-h*.55,2,h*.15,'#655d57');
+p(x+w*.42,y-h*.3,w*.18,h*.3,'#332b29');p(x+w*.43,y-h*.29,2,h*.27,'#b09b7c')};
+house(-28,107,94,86);house(247,104,99,80);house(58,96,65,55);house(209,95,55,51);
+poly([126,93,193,93,320,180,0,180],'#706b62');for(let i=0;i<18;i++){let y=97+i*5.1,spread=(y-92)*2.2;for(let x=160-spread;x<160+spread;x+=12+(i%3)*5){let n=noise(Math.floor(x),i);p(x,y,9+(i%4)*3,2,n>.5?'#8b8274':'#514e4a')}}
+for(let i=0;i<90;i++){let x=noise(i,20)*W,y=99+noise(i,33)*80;if(x>150-(y-95)*1.5&&x<170+(y-95)*1.5)continue;p(x,y,2+noise(i,3)*4,2,noise(i,4)>.5?'#6b6a4f':'#434d3d')}
+p(222,87,35,6,'#5a514a');p(225,82,29,5,'#82796a');p(228,68,4,16,'#554840');p(250,68,4,16,'#554840');poly([225,68,239,58,254,68],'#483d3b');p(234,85,12,7,'#292d30');
+for(let i=0;i<9;i++){const x=35+i*2,y=75-i*5;p(x,y,2,7,'#3d302f')}p(42,40,3,48,'#423330');for(let i=0;i<5;i++){p(44+i*5,45-i*7,9,2,'#443637')}
+const bob=Math.sin(now/270)*1.2;
+ctx.save();ctx.translate(163,111+bob);ctx.scale(1.38,1.38);
+const bone='#ded0af',lit='#f1e4c5',shadow='#8d806c',dark='#26272a';
+p(-12,-41,24,24,shadow);p(-10,-44,20,23,lit);p(-15,-33,30,12,bone);p(-10,-32,7,8,dark);p(4,-32,7,8,dark);p(-2,-25,4,5,dark);p(-8,-19,16,6,shadow);for(let i=0;i<4;i++)p(-7+i*4,-18,2,5,lit);
+p(-4,-14,8,35,shadow);p(-17,-13,34,7,bone);for(let i=0;i<5;i++){const y=-7+i*5;p(-16+i, y,32-i*2,3,i%2?bone:lit);p(-17+i,y,4,5,shadow);p(13-i,y,4,5,shadow)}
+p(-17,18,34,6,shadow);p(-18,-10,7,26,bone);p(11,-10,7,26,bone);p(-19,13,8,5,lit);p(12,13,8,5,lit);p(-17,18,7,11,bone);p(11,18,7,11,bone);
+p(-13,24,26,7,shadow);p(-13,30,9,25,bone);p(5,30,9,25,bone);p(-15,52,12,5,shadow);p(4,52,12,5,shadow);
+p(-31,0,12,33,'#704d3b');p(-29,3,8,27,'#9b7453');p(-28,-4,6,8,lit);p(-27,-23,3,21,shadow);p(-33,-25,15,4,'#918477');
+p(18,-11,7,32,bone);p(20,14,7,13,shadow);
+ctx.fillStyle='#5b3d2f';ctx.beginPath();ctx.ellipse(30,4,17,23,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#9b704a';ctx.beginPath();ctx.ellipse(30,4,13,20,0,0,Math.PI*2);ctx.fill();p(28,-13,4,34,'#644638');p(17,2,26,3,'#644638');p(25,0,10,9,'#c0a17a');p(29,2,3,5,'#4c4542');
 ctx.restore();
-ctx.save();ctx.translate(253,184+Math.sin(now/300)*1.5);ctx.rotate(-.23);
-p(-11,-85,15,102,'#62412e');p(-8,-82,5,94,'#9a6944');p(-18,-104,28,25,'#685342');p(-13,-99,18,15,'#ba8e59');
-if(state==='attack'){const s=8+charge*.12;ctx.fillStyle='#f5a53e';ctx.fillRect(-s/2-4,-106-s/2,s,s);p(-4,-106,8,8,'#ffe8a4')}
-p(-23,-2,27,19,'#796052');p(-17,-4,14,9,'#c7a48b');ctx.restore();
-if(now-spellEffect<450){p(138,55,44,54,'#ed8d39');p(145,63,29,37,'#ffdb72')}
-if(state==='defend'){p(8,8,4,28,'#dc7256');p(8,8,30,4,'#dc7256')}
-if(state==='victory'){p(100,67,120,28,'#152d2b');ctx.fillStyle='#b4e8b3';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('VICTORY!',160,85)}
-if(state==='defeat'){p(100,67,120,28,'#351d28');ctx.fillStyle='#ffb3a0';ctx.font='bold 13px monospace';ctx.textAlign='center';ctx.fillText('DEFEAT',160,85)}
+ctx.save();ctx.translate(260,192+Math.sin(now/240)*2);ctx.rotate(-.26);
+p(-16,-108,19,126,'#583924');p(-13,-104,7,118,'#a77b4d');p(-26,-122,38,29,'#6a4c35');p(-20,-118,25,22,'#a0774c');p(-9,-117,10,17,'#3d3540');p(-6,-115,5,13,'#9b8dd2');
+if(state==='attack'){let s=8+charge*.22;ctx.fillStyle='#e6a64b';ctx.fillRect(-s/2-6,-108-s/2,s,s);p(-8,-112,9,9,'#ffe7a0')}
+p(-26,-3,36,23,'#6e3b35');p(-22,-8,19,15,'#c99879');p(-16,-9,10,5,'#e4b597');ctx.restore();
+if(now-spellEffect<550){const alpha=1-(now-spellEffect)/550;ctx.globalAlpha=alpha;p(131,45,65,74,'#f3933e');p(143,52,39,56,'#ffdc82');ctx.globalAlpha=1}
+if(state==='defend'){p(3,3,4,30,'#c35b47');p(3,3,30,4,'#c35b47')}
+if(state==='victory'||state==='defeat'){p(104,66,112,30,'#1a2028');ctx.fillStyle=state==='victory'?'#d3f2ba':'#ffb2a3';ctx.textAlign='center';ctx.font='bold 14px monospace';ctx.fillText(state==='victory'?'VICTORY':'DEFEAT',160,85)}
 }
 $('modeHelp').textContent='Raw power: total normalized effort determines damage. Switch modes to compare how each feels.';
 $('attackMode').onchange=()=>{$('modeHelp').textContent=({power:'Raw power: accumulate energy over 20 seconds.',precision:'Precision: your watts are the gold line. Follow the moving green target band. Both too much and too little power reduce charging.',climb:'Escalating resistance: maintain power as the trainer gradually increases gradient (if enabled).',release:'Risk and release: build charge, then stop before it starts decaying.'})[$('attackMode').value]};
