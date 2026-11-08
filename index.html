@@ -22,7 +22,7 @@ button:disabled{opacity:.55}button.secondary{background:#334155}
 .panel{margin-top:12px}canvas{display:block;width:100%;height:210px}
 .note{color:#94a3b8;font-size:.78rem;line-height:1.5}
 </style></head><body><main>
-<h1>🚴 Trainer Monitor <span class="sub">v0.3</span></h1>
+<h1>🚴 Trainer Monitor <span class="sub">v0.4</span></h1>
 <p id="status" role="status">Disconnected</p>
 <div class="controls"><button id="connect">Connect Magnus</button><button class="secondary" id="reset">Reset session</button></div>
 <div class="grid">
@@ -35,13 +35,16 @@ button:disabled{opacity:.55}button.secondary{background:#334155}
 <div class="stat"><div class="label">AVG POWER</div><div class="num" id="average">—</div><span class="unit">W</span></div>
 <div class="stat"><div class="label">MAX POWER</div><div class="num" id="maximum">—</div><span class="unit">W</span></div>
 </div>
-<section class="panel"><h2>Live power <span class="sub">· last 2 minutes</span></h2><canvas id="graph" aria-label="Live power history chart"></canvas><p class="note">The session starts with the first power reading. Reset clears the timer and graph. Read-only: resistance control comes later.</p></section>
+<section class="panel"><h2>Live power <span class="sub">· last 2 minutes</span></h2><canvas id="graph" aria-label="Live power history chart"></canvas><p class="note">The session starts with the first power reading. Reset clears the timer and graph. Read-only: resistance control comes later.</p></section><section class="panel"><h2>CycleOps control diagnostics</h2><p class="note" id="controlStatus">Not connected</p><pre id="controlLog" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem;max-height:180px;overflow:auto">No indications yet.</pre><p class="note">Read-only diagnostic: no control commands will be sent.</p></section>
 </main>
 <script>
 const $=id=>document.getElementById(id);
 let previousCrank=null,device=null,sessionStart=null,lastPower=null,maxPower=0;
 let history=[],samples=0,sumPower=0;
 const WINDOW_MS=120000;
+const CONTROL_SERVICE='c0f4013a-a837-4165-bab9-654ef70747c6';
+const CONTROL_POINT='ca31a533-a858-4dc7-a650-fdeb6dad4c14';
+function controlLog(message){const el=$('controlLog');if(el.textContent==='No indications yet.')el.textContent='';el.textContent=new Date().toLocaleTimeString()+'  '+message+'\n'+el.textContent.slice(0,3000)}
 function formatTime(ms){const sec=Math.floor(ms/1000);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
 function resetSession(){sessionStart=null;lastPower=null;maxPower=0;samples=0;sumPower=0;history=[];previousCrank=null;for(const id of ['power','average','maximum','cadence','speed'])$(id).textContent='—';$('timer').textContent='00:00';drawGraph()}
 $('reset').onclick=resetSession;
@@ -102,7 +105,7 @@ $('connect').onclick=async()=>{
  try{
  if(!navigator.bluetooth)throw Error('Web Bluetooth unavailable: open in Chrome on Android');
  $('status').textContent='Choose Magnus…';
- device=await navigator.bluetooth.requestDevice({filters:[{services:[0x1818]}],optionalServices:[0x180a]});
+ device=await navigator.bluetooth.requestDevice({filters:[{services:[0x1818]}],optionalServices:[0x180a,CONTROL_SERVICE]});
  device.addEventListener('gattserverdisconnected',()=>{$('status').textContent='Disconnected';$('connect').disabled=false;$('connect').textContent='Reconnect Magnus'});
  $('status').textContent='Connecting…';
  const server=await device.gatt.connect();
@@ -110,6 +113,20 @@ $('connect').onclick=async()=>{
  const characteristic=await service.getCharacteristic(0x2a63);
  characteristic.addEventListener('characteristicvaluechanged',measurement);
  await characteristic.startNotifications();
+ try{
+   const controlService=await server.getPrimaryService(CONTROL_SERVICE);
+   const control=await controlService.getCharacteristic(CONTROL_POINT);
+   control.addEventListener('characteristicvaluechanged',event=>{
+     const bytes=new Uint8Array(event.target.value.buffer,event.target.value.byteOffset,event.target.value.byteLength);
+     controlLog([...bytes].map(b=>b.toString(16).padStart(2,'0')).join(' '));
+   });
+   await control.startNotifications();
+   $('controlStatus').textContent='Subscribed to CycleOpsControlPoint indications';
+   controlLog('Subscribed (waiting for indications)');
+ }catch(error){
+   $('controlStatus').textContent='Control diagnostics unavailable: '+error.message;
+   controlLog('Error: '+error.message);
+ }
  $('status').textContent='Connected: '+device.name;
  $('connect').disabled=true;$('connect').textContent='Connected';
  }catch(err){$('status').textContent=err.name+': '+err.message;$('connect').disabled=false}
