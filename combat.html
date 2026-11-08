@@ -113,11 +113,51 @@ body.controlsHidden canvas#scene{width:100%!important;object-fit:cover!important
 @media(max-width:750px){#enemyHud{width:160px;padding:7px;top:6px}#enemyHud .enemyHudTop{font-size:6px}#enemyHud .enemyHudTrack{height:12px;margin-top:6px}#playerHud{height:73px!important}#controlsToggle{top:94px!important;font-size:8px!important}body.controlsHidden #controlsToggle{top:94px!important}}
 #journeyMap{display:none;position:absolute;z-index:4;left:0;top:0;width:calc(100% - var(--side));height:calc(100% - clamp(120px,26vh,210px));background:#17251e;border:4px ridge #937345}#journeyMap.visible{display:block}#mapCanvas{width:100%;height:100%;object-fit:fill;image-rendering:pixelated}#mapCaption{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);background:#151c1aee;border:2px solid #bda780;color:#eee2bd;font:bold clamp(11px,1.5vw,18px) monospace;padding:10px;white-space:nowrap;pointer-events:none}#journeyBadge{position:absolute;z-index:8;left:50%;bottom:calc(clamp(120px,26vh,210px) + 10px);transform:translateX(-50%);font:bold 12px monospace;color:#f5ddb2;text-shadow:2px 2px #000;pointer-events:none;white-space:nowrap}body.controlsHidden #journeyMap{width:100%}@media(max-width:750px){#journeyBadge{font-size:9px}#mapCaption{font-size:10px}}
 #debugSkip{background:#30253d!important;color:#e7d7ff!important;border-color:#b59acb!important;font-size:10px!important;padding:6px!important;min-height:30px!important}
-</style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.5</span></h1>
 
-<section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button><button type="button" id="debugSkip" title="Debug: skip travel or combat, no rewards">⏭ Skip Phase</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
-<button type="button" id="controlsToggle" aria-expanded="true" aria-label="Hide right controls">HIDE CONTROLS ◀</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
+/* v0.10.6: full-screen composition. Controls are an overlay, never layout space. */
+:root,body,body.controlsHidden{--side:0px!important;--control-width:min(320px,39vw)}
+html,body,main{width:100%!important;height:100%!important;overflow:hidden!important}
+main{width:100vw!important;height:100dvh!important;max-width:none!important;padding:0!important;background:#080808!important}
+canvas#scene,body.controlsHidden canvas#scene{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  max-height:none!important;min-height:0!important;object-fit:cover!important;
+  object-position:center center!important;image-rendering:pixelated!important;
+}
+#terrainHud{left:0!important;right:0!important;bottom:0!important;width:100%!important;max-width:none!important}
+#journeyMap,body.controlsHidden #journeyMap{left:0!important;width:100%!important}
+#phaseBanner{left:0!important;width:100%!important}
+#playerHud{left:12px!important}
+#enemyHud,body.controlsHidden #enemyHud{right:12px!important}
+#shieldOverlay,#wattPopup,#wattStreak,#pedalPause{left:50%!important}
+#journeyBadge{left:50%!important}
+main>h1{display:none!important}
+#controlsToggle,#debugSkip{position:absolute!important;z-index:15!important;right:12px!important;
+ left:auto!important;width:clamp(110px,15vw,175px)!important;
+ background:rgba(15,19,27,.94)!important;color:#eff2fa!important;
+ border:2px solid #b7b9c5!important;min-height:33px!important;padding:6px!important;
+ font:bold 10px monospace!important;cursor:pointer!important}
+#controlsToggle,body.controlsHidden #controlsToggle{top:clamp(89px,12vh,125px)!important;right:12px!important}
+#debugSkip{top:calc(clamp(89px,12vh,125px) + 40px)!important;border-color:#baa6e3!important;color:#e7d7ff!important}
+main>.panel:first-of-type,main>.panel:nth-of-type(2),main>.settings,.extrasToggle{
+ position:absolute!important;left:auto!important;right:0!important;width:var(--control-width)!important;
+ max-width:none!important;box-sizing:border-box!important;z-index:11!important;
+ background:rgba(6,8,13,.94)!important;border-left:2px solid #aab2c1!important;
+ backdrop-filter:blur(5px)!important}
+main>.panel:first-of-type{top:0!important;height:clamp(135px,22vh,185px)!important;bottom:auto!important;overflow-y:auto!important}
+main>.settings{top:clamp(135px,22vh,185px)!important;height:clamp(100px,16vh,135px)!important;bottom:auto!important;overflow-y:auto!important}
+main>.panel:nth-of-type(2){top:calc(clamp(135px,22vh,185px) + clamp(100px,16vh,135px))!important;
+ bottom:43px!important;height:auto!important;max-height:none!important;overflow-y:auto!important}
+.extrasToggle{bottom:0!important;top:auto!important;height:43px!important}
+body.controlsHidden main>.panel,body.controlsHidden main>.settings,body.controlsHidden #extrasToggle{display:none!important}
+body.controlsHidden #debugSkip,body.controlsHidden #controlsToggle{display:block!important}
+@media(max-width:750px){:root,body,body.controlsHidden{--control-width:min(270px,47vw)}
+ #controlsToggle,#debugSkip{width:130px!important;font-size:9px!important}
+ #playerHud{max-width:36vw}#enemyHud{max-width:30vw}}
+</style></head><body class="controlsHidden"><main>
+<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.6</span></h1>
+
+<section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
+<button type="button" id="controlsToggle" aria-expanded="false" aria-label="Show right controls">SHOW CONTROLS ▶</button><button type="button" id="debugSkip" title="Debug: skip travel or combat, no rewards">⏭ SKIP PHASE</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
 <div id="journeyBadge">THE ROAD · 1 / 6</div><div id="journeyMap"><canvas id="mapCanvas" width="800" height="440"></canvas><div id="mapCaption">PEDAL TO TRAVEL</div></div><div id="shieldOverlay" aria-live="polite"></div><div id="enemyHud"><div class="enemyHudTop"><span id="enemyName">SKELETON SCOUT</span><span id="enemyHp">20 / 20 HP</span></div><div class="enemyHudTrack"><div id="enemyBar" class="enemyHudFill" style="width:100%"></div></div></div><div id="terrainHud"><div class="stats"><div><div class="caption">TARGET</div><div class="number" id="terrainTarget">EASY</div></div><div><div class="caption">YOUR POWER</div><div class="number" id="terrainActual">0 W</div></div></div><div class="plot"><div class="heading"><span id="terrainTitle">APPROACH</span><span id="terrainClock">0/20s</span></div><canvas id="terrainCanvas" width="640" height="170"></canvas></div></div><canvas id="scene" width="320" height="240" aria-label="Wizard faces skeleton in abandoned village"></canvas>
 <section class="panel">
 <div class="row" style="margin-bottom:8px"><b>ENCOUNTER <span id="encounterCount">1</span></b><span class="small">KILLS <b id="killCount">0</b> · TIME <b id="sessionTime">0:00</b></span></div>
