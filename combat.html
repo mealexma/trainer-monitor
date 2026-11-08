@@ -79,10 +79,24 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 @media(max-height:800px){main>.panel:first-of-type{height:138px!important}main>.settings{top:190px!important;height:102px!important}main>.panel:nth-of-type(2){top:292px!important}.connection{font-size:10px!important}#phaseSteps{margin:6px 0!important}.meter{margin:3px 0 6px!important}}
 @media(max-height:620px){main>h1{height:39px!important;padding:8px!important;font-size:15px!important}main>.panel:first-of-type{top:39px!important;height:120px!important}main>.settings{top:159px!important;height:88px!important}main>.panel:nth-of-type(2){top:247px!important;bottom:36px!important}.extrasToggle{height:36px!important}main>.panel:first-of-type button{min-height:27px!important;padding:4px!important}}
 @media(max-width:650px){:root{--side:clamp(165px,43vw,240px)}main>h1{font-size:12px!important;padding:12px 5px!important}main>h1 .small{font-size:9px!important}main>.panel:first-of-type,main>.settings,main>.panel:nth-of-type(2){padding:6px!important}button,select{font-size:10px!important;padding:5px 3px!important;min-height:28px!important}.readout{font-size:19px!important}}
+
+/* v0.8.7: medieval phase announcement ribbon above the battlefield */
+#phaseBanner{position:absolute;z-index:5;left:0;top:0;width:calc(100% - var(--side));height:clamp(65px,14vh,115px);display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;opacity:0;transform:translateY(-110%);transition:transform .48s cubic-bezier(.16,.8,.2,1),opacity .38s ease}
+#phaseBanner.show{opacity:1;transform:translateY(0)}
+#phaseBanner .ribbon{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:min(70%,480px);max-width:92%;padding:10px 42px 12px;background:linear-gradient(180deg,#3a2c24 0%,#191417 50%,#2d211f 100%);border-top:3px solid #a88a58;border-bottom:3px solid #a88a58;box-shadow:0 5px 0 #0b0a0c,0 8px 25px #000b,inset 0 0 0 2px #473b31;clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%)}
+#phaseBanner .ribbon:before,#phaseBanner .ribbon:after{content:'✦';position:absolute;top:50%;transform:translateY(-50%);color:#c9aa74;font-size:19px}#phaseBanner .ribbon:before{left:19px}#phaseBanner .ribbon:after{right:19px}
+#phaseBanner .phaseTitle{font-family:Georgia,'Times New Roman',serif;font-variant:small-caps;font-size:clamp(25px,4vw,43px);font-weight:900;letter-spacing:.12em;line-height:1.04;color:#f4e1b1;text-shadow:2px 3px 0 #090809,0 0 14px #b4873b50;text-align:center}
+#phaseBanner .phaseSubtitle{font-family:Georgia,serif;font-size:clamp(10px,1.2vw,15px);letter-spacing:.12em;color:#d0b78c;margin-top:3px;text-align:center}
+#phaseBanner[data-phase=defend] .ribbon{border-color:#b8584c}#phaseBanner[data-phase=defend] .phaseTitle{color:#ffb7a2}
+#phaseBanner[data-phase=attack] .ribbon{border-color:#8b72c8}#phaseBanner[data-phase=attack] .phaseTitle{color:#d8c1ff}
+#phaseBanner[data-phase=rest] .phaseTitle,#phaseBanner[data-phase=ready] .phaseTitle{color:#e9d9ae}
+@media(max-width:650px){#phaseBanner{height:70px}#phaseBanner .ribbon{padding:9px 22px;min-width:88%}#phaseBanner .ribbon:before{left:7px}#phaseBanner .ribbon:after{right:7px}#phaseBanner .phaseTitle{font-size:24px;letter-spacing:.05em}}
+@media(prefers-reduced-motion:reduce){#phaseBanner{transition:none}}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.6</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Combat Lab v0.8.7</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
+<div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
 <canvas id="scene" width="320" height="240" aria-label="Wizard faces skeleton in abandoned village"></canvas>
 <section class="panel">
 <div class="bars"><div><div class="row"><b>Wizard</b><span id="playerHp">30 / 30 HP</span></div><div class="meter"><div class="fill health" id="playerBar" style="width:100%"></div></div></div><div><div class="row"><b>Skeleton</b><span id="enemyHp">20 / 20 HP</span></div><div class="meter"><div class="fill health" id="enemyBar" style="width:100%"></div></div></div></div>
@@ -101,7 +115,10 @@ const ATTACK_MS=20000,DEFENSE_MS=9000,REST_MS=9000;
 const log=m=>{$('journal').textContent=m+'\n'+$('journal').textContent.slice(0,1400)};
 const baseline=()=>Math.min(350,Math.max(50,Number($('baseline').value)||120));
 const power=()=>demo?demoWatts:(Date.now()-lastReading<2400?liveWatts:0);
-function setState(s){state=s;phaseStart=performance.now();charge=0;powerIntegral=0;stopSince=null;lastPedaling=false;defensePassed=false;if(s==='attack'){mode=$('attackMode').value;log('Your turn: '+mode+' fireball. Pedal to charge, stop to cast.')}if(s==='defend')log('Skeleton attacks! Sprint to block or evade.');if(s==='rest'){setGrade(0);log('COMPOSURE: Pedal gently to regain Focus. Hard pedaling does not help.')}if(s==='victory'){setGrade(0);log('Victory! The skeleton collapses into dust.')}if(s==='defeat'){setGrade(0);log('Defeat. Your wizard retreats from the village.')} }
+
+let bannerHideTimer=null;
+function announcePhase(s){const messages={ready:['IDLE','Gather your strength'],rest:['IDLE','Recover your focus'],defend:['DEFEND','Brace for the enemy strike'],attack:['ATTACK','Channel your magic'],victory:['VICTORY','The foe is vanquished'],defeat:['DEFEAT','Your strength has failed']};const [title,subtitle]=messages[s]||messages.ready;const banner=$('phaseBanner');banner.classList.remove('show');banner.dataset.phase=s;$('bannerTitle').textContent=title;$('bannerSubtitle').textContent=subtitle;clearTimeout(bannerHideTimer);void banner.offsetWidth;banner.classList.add('show');bannerHideTimer=setTimeout(()=>banner.classList.remove('show'),2500)}
+function setState(s){state=s;announcePhase(s);phaseStart=performance.now();charge=0;powerIntegral=0;stopSince=null;lastPedaling=false;defensePassed=false;if(s==='attack'){mode=$('attackMode').value;log('Your turn: '+mode+' fireball. Pedal to charge, stop to cast.')}if(s==='defend')log('Skeleton attacks! Sprint to block or evade.');if(s==='rest'){setGrade(0);log('COMPOSURE: Pedal gently to regain Focus. Hard pedaling does not help.')}if(s==='victory'){setGrade(0);log('Victory! The skeleton collapses into dust.')}if(s==='defeat'){setGrade(0);log('Defeat. Your wizard retreats from the village.')} }
 function restart(){focus=50;playerHp=30;enemyHp=20;round=0;attacks=0;setGrade(0);setState('ready');log('New encounter. Begin pedaling to face the skeleton.')}
 $('restart').onclick=restart;
 $('demo').onclick=()=>{if(device?.gatt?.connected)device.gatt.disconnect();demo=true;connected=false;control=null;controlEnabled=false;$('demoPanel').classList.remove('hide');$('connection').textContent='Demo mode · simulated wattage';$('enableControl').disabled=true;$('zero').disabled=true;restart()};
