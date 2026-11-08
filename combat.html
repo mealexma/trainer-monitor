@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pedal Fantasy — Combat Lab</title><meta name="theme-color" content="#182438"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><link rel="manifest" href="./pedal-manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="./pedal-icon.svg">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pedal Fantasy — Combat Lab</title><meta name="theme-color" content="#182438"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><link rel="manifest" href="./pedal-manifest.webmanifest"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"><link rel="icon" type="image/svg+xml" href="./pedal-icon.svg">
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:#0d111b;color:#f1e9d9}main{max-width:850px;margin:auto;padding:18px}h1{margin:6px 0;font-family:Georgia,serif;font-size:2rem;color:#f4d18c}h2{font-size:1rem;margin:0 0 12px}p{line-height:1.5}.muted{color:#aab0bd;font-size:.87rem}.panel{background:#1b2230;border:1px solid #394153;border-radius:14px;padding:16px;margin:12px 0}.controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center}button,select,input{font:inherit}button,select{border:1px solid #5a6375;border-radius:9px;padding:11px;background:#354159;color:white}button.primary{background:#8d542c;border-color:#d5a66c}button:disabled{opacity:.4}input[type=range]{width:100%}canvas{width:100%;height:auto;display:block;border-radius:12px;background:#101827}.bars{display:grid;grid-template-columns:1fr 1fr;gap:12px}.meter{height:15px;background:#0c111b;border-radius:12px;overflow:hidden;margin:6px 0}.fill{height:100%;background:#e9a85d;width:0%;transition:width .15s}.health{background:#c45653}.small{font-size:.78rem;color:#aab0bd}.readout{font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums}.status{color:#f4d18c;font-weight:600}.row{display:flex;justify-content:space-between;gap:10px}.hide{display:none!important}.phaseStep{border:1px solid #586074;border-radius:9px;padding:10px 13px;color:#aab0bd;font-weight:700;font-size:.85rem}.phaseStep.active{background:#c58b42;color:#141922;border-color:#f0c37e}.phaseStep.active.defend{background:#df7659}.phaseStep.active.attack{background:#6fb8f2}.precisionTrack{height:66px;position:relative;border-radius:12px;background:linear-gradient(90deg,#28344a,#35445d);border:1px solid #63718b;margin:10px 0 6px;overflow:hidden}.precisionZone{position:absolute;top:0;bottom:0;background:rgba(81,213,154,.3);border-left:2px solid #71f2ac;border-right:2px solid #71f2ac;transition:left .1s,width .1s}.precisionNeedle{position:absolute;top:0;bottom:0;width:4px;border-radius:3px;background:#f9df92;box-shadow:0 0 10px #ffd97d;transition:left .13s}.precisionNeedle.good{background:#6cf5b0;box-shadow:0 0 14px #6cf5b0}.precisionTick{position:absolute;bottom:5px;transform:translateX(-50%);font-size:11px;color:#d6deeb}.precisionFeedback{font-size:1.1rem;font-weight:750;text-align:center;min-height:27px}.precisionFeedback.good{color:#75f0ad}.precisionFeedback.bad{color:#f2bd80}@media(max-width:520px){.bars{grid-template-columns:1fr}}
 /* Single-screen playtest layout */
@@ -153,8 +153,27 @@ body.controlsHidden #debugSkip,body.controlsHidden #controlsToggle{display:block
 @media(max-width:750px){:root,body,body.controlsHidden{--control-width:min(270px,47vw)}
  #controlsToggle,#debugSkip{width:130px!important;font-size:9px!important}
  #playerHud{max-width:36vw}#enemyHud{max-width:30vw}}
+/* v0.10.7: borderless pixel-font interface, slime higher in battlefield */
+html,body,main,main *,button,input,select,textarea,
+#playerHud,#enemyHud,#terrainHud,#journeyMap,#controlsToggle,#debugSkip,#phaseBanner,#shieldOverlay,
+#wattPopup,#wattStreak,#pedalPause,#journeyBadge,#mapCaption{
+  font-family:'Press Start 2P',monospace!important;
+}
+html body main *,html body main *::before,html body main *::after{
+  border-width:0!important;border-style:none!important;border-color:transparent!important;
+}
+html body main :is(#playerHud,#enemyHud,#terrainHud,#journeyMap,#controlsToggle,#debugSkip,#phaseBanner,#pedalPause,#mapCaption),
+html body main>.panel:first-of-type,html body main>.panel:nth-of-type(2),
+html body main>.settings,html body main>.secondary,html body main>.extrasToggle{
+  border:0!important;border-left:0!important;border-right:0!important;border-top:0!important;border-bottom:0!important;
+}
+html body main :is(#controlsToggle,#debugSkip),html body main button{border:0!important}
+#playerHud,#enemyHud,#terrainHud{box-shadow:0 4px 18px #0008!important}
+#terrainHud .stats{border-right:0!important}
+#playerHud .track,#enemyHud .enemyHudTrack,.meter{background:#080a10!important}
+html body main :is(#enemyHud,#playerHud) *{font-family:'Press Start 2P',monospace!important}
 </style></head><body class="controlsHidden"><main>
-<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.6</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.7</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <button type="button" id="controlsToggle" aria-expanded="false" aria-label="Show right controls">SHOW CONTROLS ▶</button><button type="button" id="debugSkip" title="Debug: skip travel or combat, no rewards">⏭ SKIP PHASE</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
@@ -326,13 +345,13 @@ function drawLayeredScene(now){
     const frame=pose==='idle'?idleFrames[Math.floor(now/135)%idleFrames.length]:[0,0,0,0];
     const recoil=pose==='hurt'?-4:0;
     const advance=pose==='attack'?8:0;
-    const baseW=isSlime?136:112,baseH=isSlime?108:114;
+    const baseW=isSlime?158:112,baseH=isSlime?146:114;
     const enemyW=baseW+advance+frame[2],enemyH=baseH+advance+frame[3];
-    const enemyX=Math.round((isSlime?92:124)+recoil-Math.round(advance/3)+frame[0]-frame[2]/2);
-    const enemyY=Math.round((isSlime?99:79)+(pose==='hurt'?-2:0)+frame[1]-frame[3]);
+    const enemyX=Math.round((isSlime?81:124)+recoil-Math.round(advance/3)+frame[0]-frame[2]/2);
+    const enemyY=Math.round((isSlime?24:79)+(pose==='hurt'?-2:0)+frame[1]-frame[3]);
     ctx.fillStyle='rgba(0,0,0,.34)';
     ctx.beginPath();
-    ctx.ellipse(isSlime?160:181,193,isSlime?51:40,7,0,0,Math.PI*2);
+    ctx.ellipse(isSlime?160:181,isSlime?167:193,isSlime?57:40,7,0,0,Math.PI*2);
     ctx.fill();
     ctx.drawImage(enemyImage,enemyX,enemyY,enemyW,enemyH);
   }
