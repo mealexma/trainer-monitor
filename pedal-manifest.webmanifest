@@ -1,0 +1,19 @@
+{
+  "name": "Pedal Fantasy — Combat Lab",
+  "short_name": "Pedal Fantasy",
+  "description": "Bike-powered fantasy RPG combat prototype",
+  "id": "/trainer-monitor/combat.html",
+  "start_url": "/trainer-monitor/combat.html",
+  "scope": "/trainer-monitor/",
+  "display": "standalone",
+  "background_color": "#0d111b",
+  "theme_color": "#182438",
+  "icons": [
+    {
+      "src": "/trainer-monitor/pedal-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
