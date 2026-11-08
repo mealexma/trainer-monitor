@@ -22,7 +22,7 @@ button:disabled{opacity:.55}button.secondary{background:#334155}
 .panel{margin-top:12px}canvas{display:block;width:100%;height:210px}
 .note{color:#94a3b8;font-size:.78rem;line-height:1.5}
 </style></head><body><main>
-<h1>🚴 Trainer Monitor <span class="sub">v0.7</span></h1>
+<h1>🚴 Trainer Monitor <span class="sub">v0.8</span></h1>
 <p id="status" role="status">Disconnected</p>
 <div class="controls"><button id="connect">Connect Magnus</button><button class="secondary" id="reset">Reset session</button></div>
 <div class="grid">
@@ -35,7 +35,7 @@ button:disabled{opacity:.55}button.secondary{background:#334155}
 <div class="stat"><div class="label">AVG POWER</div><div class="num" id="average">—</div><span class="unit">W</span></div>
 <div class="stat"><div class="label">MAX POWER</div><div class="num" id="maximum">—</div><span class="unit">W</span></div>
 </div>
-<section class="panel"><h2>Live power <span class="sub">· last 2 minutes</span></h2><canvas id="graph" aria-label="Live power history chart"></canvas><p class="note">The session starts with the first power reading. Reset clears the timer and graph. Resistance adjustment is not yet implemented.</p></section><section class="panel"><h2>CycleOps control diagnostics</h2><p class="note" id="controlStatus">Not connected</p><pre id="controlLog" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem;max-height:180px;overflow:auto">No indications yet.</pre><p class="note">Experimental replay of one observed Zwift packet. Its effect is unknown; this is not a resistance setting.</p><button id="testCommand" disabled>Send captured test command</button><div style="margin-top:14px"><label for="experimentalValue">Experimental 46 packet (captured values only)</label><select id="experimentalValue" style="display:block;margin:10px 0;background:#0f172a;color:white;padding:10px;border-radius:8px"><option value="46807f">46 80 7f</option><option value="460280">46 02 80</option><option value="463b82">46 3b 82</option></select><button id="send46" disabled>Send one experimental 46 command</button><p class="note">Unknown effect and range. Trainer must be unoccupied; stop if anything unexpected happens. Do not pedal during this test.</p></div><div style="margin-top:18px;border-top:1px solid #475569;padding-top:15px"><h2>Timed repeat test · 20 seconds</h2><p class="note">Repeats the selected captured 46 packet every 2 seconds, maximum 10 sends. Unknown physical effect. Trainer unoccupied. Stop immediately if anything unusual happens. Stopping ends transmissions; it does not reset any setting on the trainer.</p><div class="controls"><button id="startRepeat" disabled>Start 20-second test</button><button id="stopRepeat" class="secondary" disabled>STOP repeating</button></div><p class="note" id="repeatStatus">Not running</p></div></section>
+<section class="panel"><h2>Live power <span class="sub">· last 2 minutes</span></h2><canvas id="graph" aria-label="Live power history chart"></canvas><p class="note">The session starts with the first power reading. Reset clears the timer and graph. Resistance adjustment is not yet implemented.</p></section><section class="panel"><h2>CycleOps control diagnostics</h2><p class="note" id="controlStatus">Not connected</p><pre id="controlLog" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:.8rem;max-height:180px;overflow:auto">No indications yet.</pre><p class="note">Experimental replay to Zwift's actual control characteristic (0x0027). Its effect is unknown; this is not a resistance setting.</p><button id="testCommand" disabled>Send captured test command</button><div style="margin-top:14px"><label for="experimentalValue">Experimental 46 packet (captured values only)</label><select id="experimentalValue" style="display:block;margin:10px 0;background:#0f172a;color:white;padding:10px;border-radius:8px"><option value="46807f">46 80 7f</option><option value="460280">46 02 80</option><option value="463b82">46 3b 82</option></select><button id="send46" disabled>Send one experimental 46 command</button><p class="note">Unknown effect and range. Trainer must be unoccupied; stop if anything unexpected happens. Do not pedal during this test.</p></div><div style="margin-top:18px;border-top:1px solid #475569;padding-top:15px"><h2>Timed repeat test · 20 seconds</h2><p class="note">Repeats the selected captured 46 packet to Zwift's control endpoint every 2 seconds, maximum 10 sends. Unknown physical effect. Trainer unoccupied. Stop immediately if anything unusual happens. Stopping ends transmissions; it does not reset any setting on the trainer.</p><div class="controls"><button id="startRepeat" disabled>Start 20-second test</button><button id="stopRepeat" class="secondary" disabled>STOP repeating</button></div><p class="note" id="repeatStatus">Not running</p></div></section>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -44,6 +44,7 @@ let history=[],samples=0,sumPower=0,controlCharacteristic=null,commandBusy=false
 const WINDOW_MS=120000;
 const CONTROL_SERVICE='c0f4013a-a837-4165-bab9-654ef70747c6';
 const CONTROL_POINT='ca31a533-a858-4dc7-a650-fdeb6dad4c14';
+const ZWIFT_POINT='a026e005-0a7d-4ab3-97fa-f1500f9feb8b';
 function controlLog(message){const el=$('controlLog');if(el.textContent==='No indications yet.')el.textContent='';el.textContent=new Date().toLocaleTimeString()+'  '+message+'\n'+el.textContent.slice(0,3000)}
 $('testCommand').onclick=async()=>{
  if(!controlCharacteristic||commandBusy||repeatActive)return;
@@ -174,16 +175,15 @@ $('connect').onclick=async()=>{
  characteristic.addEventListener('characteristicvaluechanged',measurement);
  await characteristic.startNotifications();
  try{
-   const controlService=await server.getPrimaryService(CONTROL_SERVICE);
-   const control=await controlService.getCharacteristic(CONTROL_POINT);
+   const control=await service.getCharacteristic(ZWIFT_POINT);
    control.addEventListener('characteristicvaluechanged',event=>{
      const bytes=new Uint8Array(event.target.value.buffer,event.target.value.byteOffset,event.target.value.byteLength);
      controlLog([...bytes].map(b=>b.toString(16).padStart(2,'0')).join(' '));
    });
    await control.startNotifications();
    controlCharacteristic=control;repeatUi();
-   $('controlStatus').textContent='Subscribed to CycleOpsControlPoint indications';
-   controlLog('Subscribed (waiting for indications)');
+   $('controlStatus').textContent='Subscribed to Zwift control endpoint (Cycling Power service)';
+   controlLog('Subscribed to Zwift endpoint '+ZWIFT_POINT+' (waiting for indications)');
  }catch(error){
    controlCharacteristic=null;repeatUi();
    $('controlStatus').textContent='Control diagnostics unavailable: '+error.message;
