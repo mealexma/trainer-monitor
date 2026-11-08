@@ -114,7 +114,7 @@ body.controlsHidden canvas#scene{width:100%!important;object-fit:cover!important
 #journeyMap{display:none;position:absolute;z-index:4;left:0;top:0;width:calc(100% - var(--side));height:calc(100% - clamp(120px,26vh,210px));background:#17251e;border:4px ridge #937345}#journeyMap.visible{display:block}#mapCanvas{width:100%;height:100%;object-fit:fill;image-rendering:pixelated}#mapCaption{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);background:#151c1aee;border:2px solid #bda780;color:#eee2bd;font:bold clamp(11px,1.5vw,18px) monospace;padding:10px;white-space:nowrap;pointer-events:none}#journeyBadge{position:absolute;z-index:8;left:50%;bottom:calc(clamp(120px,26vh,210px) + 10px);transform:translateX(-50%);font:bold 12px monospace;color:#f5ddb2;text-shadow:2px 2px #000;pointer-events:none;white-space:nowrap}body.controlsHidden #journeyMap{width:100%}@media(max-width:750px){#journeyBadge{font-size:9px}#mapCaption{font-size:10px}}
 #debugSkip{background:#30253d!important;color:#e7d7ff!important;border-color:#b59acb!important;font-size:10px!important;padding:6px!important;min-height:30px!important}
 </style></head><body><main>
-<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.4</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.10.5</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button><button type="button" id="debugSkip" title="Debug: skip travel or combat, no rewards">⏭ Skip Phase</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <button type="button" id="controlsToggle" aria-expanded="true" aria-label="Hide right controls">HIDE CONTROLS ◀</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
@@ -277,14 +277,19 @@ function drawLayeredScene(now){
   ctx.clearRect(0,0,320,240);
   ctx.drawImage(background,0,0,320,240);
   if(state!=='victory'&&state!=='recovery'&&state!=='complete'){
-    const sway=pose==='idle'?Math.sin(now/440)*1.15:0;
+    // Hand-animated pixel steps instead of smooth sine/linear scaling.
+    // Each held pose uses exact integer coordinates and dimensions.
+    const idleFrames=[
+      [0,0,0,0], [0,-1,0,1], [1,-2,1,2], [1,-2,2,2],
+      [0,-1,1,1], [0,0,0,0], [-1,1,-1,-1], [-1,1,-1,-1]
+    ];
+    const frame=pose==='idle'?idleFrames[Math.floor(now/135)%idleFrames.length]:[0,0,0,0];
     const recoil=pose==='hurt'?-4:0;
     const advance=pose==='attack'?8:0;
-    // Different proportions for the low, wide marsh blob.
-    const enemyW=isSlime?136+advance:112+advance;
-    const enemyH=isSlime?108+advance:114+advance;
-    const enemyX=isSlime?92+recoil-advance*.32:124+recoil-advance*.32;
-    const enemyY=isSlime?99+sway+(pose==='hurt'?-2:0):79+sway+(pose==='hurt'?-2:0);
+    const baseW=isSlime?136:112,baseH=isSlime?108:114;
+    const enemyW=baseW+advance+frame[2],enemyH=baseH+advance+frame[3];
+    const enemyX=Math.round((isSlime?92:124)+recoil-Math.round(advance/3)+frame[0]-frame[2]/2);
+    const enemyY=Math.round((isSlime?99:79)+(pose==='hurt'?-2:0)+frame[1]-frame[3]);
     ctx.fillStyle='rgba(0,0,0,.34)';
     ctx.beginPath();
     ctx.ellipse(isSlime?160:181,193,isSlime?51:40,7,0,0,Math.PI*2);
@@ -307,7 +312,7 @@ if(drawLayeredScene(now))return;
 if(villageArtReady){ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,320,180);ctx.drawImage(villageArt,0,0,320,240);if(now-spellEffect<550){ctx.globalAlpha=Math.max(0,1-(now-spellEffect)/550);ctx.fillStyle='#f6b34d';ctx.fillRect(132,53,48,48);ctx.globalAlpha=1}if(state==='victory'||state==='defeat'){ctx.fillStyle='#090909';ctx.fillRect(98,70,124,30);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 13px monospace';ctx.fillText(state==='victory'?'VICTORY':'DEFEAT',160,90)}return;}
 const W=320,H=180,p=(x,y,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))};
 if(!villageReady)paintVillage();ctx.imageSmoothingEnabled=false;ctx.drawImage(villageLayer,0,0);
-const bob=Math.sin(now/270)*1.2;
+const bob=[0,-1,-2,-1,0,1,1,0][Math.floor(now/135)%8];
 ctx.save();ctx.translate(163,111+bob);ctx.scale(1.38,1.38);
 const bone='#ded0af',lit='#f1e4c5',shadow='#8d806c',dark='#26272a';
 p(-12,-41,24,24,shadow);p(-10,-44,20,23,lit);p(-15,-33,30,12,bone);p(-10,-32,7,8,dark);p(4,-32,7,8,dark);p(-2,-25,4,5,dark);p(-8,-19,16,6,shadow);for(let i=0;i<4;i++)p(-7+i*4,-18,2,5,lit);
@@ -318,7 +323,7 @@ p(-31,0,12,33,'#704d3b');p(-29,3,8,27,'#9b7453');p(-28,-4,6,8,lit);p(-27,-23,3,2
 p(18,-11,7,32,bone);p(20,14,7,13,shadow);
 ctx.fillStyle='#5b3d2f';ctx.beginPath();ctx.ellipse(30,4,17,23,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#9b704a';ctx.beginPath();ctx.ellipse(30,4,13,20,0,0,Math.PI*2);ctx.fill();p(28,-13,4,34,'#644638');p(17,2,26,3,'#644638');p(25,0,10,9,'#c0a17a');p(29,2,3,5,'#4c4542');
 ctx.restore();
-ctx.save();ctx.translate(260,192+Math.sin(now/240)*2);ctx.rotate(-.26);
+ctx.save();ctx.translate(260,192+[0,-1,-2,-1,0,1,1,0][Math.floor(now/135)%8]);ctx.rotate(-.26);
 p(-16,-108,19,126,'#583924');p(-13,-104,7,118,'#a77b4d');p(-26,-122,38,29,'#6a4c35');p(-20,-118,25,22,'#a0774c');p(-9,-117,10,17,'#3d3540');p(-6,-115,5,13,'#9b8dd2');
 if(state==='attack'){let s=8+charge*.22;ctx.fillStyle='#e6a64b';ctx.fillRect(-s/2-6,-108-s/2,s,s);p(-8,-112,9,9,'#ffe7a0')}
 p(-26,-3,36,23,'#6e3b35');p(-22,-8,19,15,'#c99879');p(-16,-9,10,5,'#e4b597');ctx.restore();
