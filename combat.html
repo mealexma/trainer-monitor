@@ -191,7 +191,7 @@ html body main :is(#enemyHud,#playerHud) *{font-family:'Press Start 2P',monospac
 #summaryRestart{width:100%;padding:14px!important;background:#343050!important;color:#fff!important}
 @media(max-width:720px){#summaryStats{grid-template-columns:1fr}#runSummary .summaryRow{padding:8px}#runSummary .summaryInner{max-height:95dvh}}
 </style></head><body class="controlsHidden"><main>
-<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.11.1</span></h1>
+<h1>⚔ Pedal Fantasy <span class="small">Journey Playtest · v0.11.2</span></h1>
 
 <section class="panel"><div class="controls"><button id="connect" class="primary">Connect Magnus</button><button id="demo">Use demo power</button><button id="restart">Restart fight</button></div><p id="connection" class="muted connection">No trainer connected. Demo power lets you simulate pedaling.</p><div id="demoPanel" class="hide"><label>Simulated power: <b id="demoValue">0</b> W</label><input id="demoPower" type="range" min="0" max="400" step="5" value="0"><div class="controls"><button id="demoStop">Stop pedaling (0 W)</button></div></div></section>
 <button type="button" id="controlsToggle" aria-expanded="false" aria-label="Show right controls">SHOW CONTROLS ▶</button><button type="button" id="debugSkip" title="Debug: skip travel or combat, no rewards">⏭ SKIP PHASE</button><div id="pedalPause">PEDAL TO START</div><div id="wattPopup" aria-live="off"></div><div id="wattStreak"></div><div id="playerHud"><div class="portrait">🧙🏻‍♂️</div><div class="stats"><div class="statline"><span>HP</span><span id="hudHp">30/30</span></div><div class="track"><div class="value" id="hudHpBar" style="width:100%"></div></div><div class="statline"><span>FOCUS</span><span id="hudFocus">0/100</span></div><div class="track focus" id="shieldFocusTap"><div class="value" id="hudFocusBar" style="width:0%"></div></div><span id="shieldStatus">SHIELD 50 FOCUS</span></div></div><div id="phaseBanner" role="status" aria-live="polite" data-phase="ready"><div class="ribbon"><div class="phaseTitle" id="bannerTitle">IDLE</div><div class="phaseSubtitle" id="bannerSubtitle">Gather your strength</div></div></div>
@@ -420,7 +420,7 @@ function drawLayeredScene(now){
     // Weapon viewmodel stays anchored to the bottom-right; poses use the same canvas footprint.
     // Generated image assets are portrait-format and retain their native aspect ratio.
     const handW=124,handH=Math.round(handW*handSprite.naturalHeight/handSprite.naturalWidth);
-    const handX=196,handY=240-handH+(handPose==='attack'?-7:handPose==='hurt'?7:0);
+    const handX=196,handY=240-handH-36+(handPose==='attack'?-7:handPose==='hurt'?7:0);
     ctx.drawImage(handSprite,handX,handY,handW,handH);
   }
   if(state==='victory'||state==='defeat'){
